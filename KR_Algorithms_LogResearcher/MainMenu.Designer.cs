@@ -94,39 +94,51 @@ namespace KR_Algorithms_LogResearcher
             toolStrip1.Items.AddRange(new ToolStripItem[] { btnOpenTool, btnAnalyzeTool, btnExportTool });
             toolStrip1.Location = new Point(0, 24);
             toolStrip1.Name = "toolStrip1";
-            toolStrip1.Size = new Size(1024, 25);
+            toolStrip1.Size = new Size(1024, 32);
             toolStrip1.TabIndex = 3;
             // 
             // btnOpenTool
             // 
-            btnOpenTool.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            btnOpenTool.BackColor = Color.White;
+            btnOpenTool.Font = new Font("Segoe UI", 9F);
+            btnOpenTool.ForeColor = Color.FromArgb(48, 48, 48);
+            btnOpenTool.Margin = new Padding(0, 0, 5, 0);
             btnOpenTool.Name = "btnOpenTool";
-            btnOpenTool.Size = new Size(73, 22);
+            btnOpenTool.Padding = new Padding(10, 5, 10, 5);
+            btnOpenTool.Size = new Size(93, 32);
             btnOpenTool.Text = "📂 Открыть";
+            btnOpenTool.Click += this.btnOpenTool_Click;
             // 
             // btnAnalyzeTool
             // 
-            btnAnalyzeTool.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            btnAnalyzeTool.BackColor = Color.FromArgb(0, 120, 215);
             btnAnalyzeTool.Enabled = false;
+            btnAnalyzeTool.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnAnalyzeTool.ForeColor = Color.White;
+            btnAnalyzeTool.Margin = new Padding(5, 0, 10, 0);
             btnAnalyzeTool.Name = "btnAnalyzeTool";
-            btnAnalyzeTool.Size = new Size(64, 22);
+            btnAnalyzeTool.Padding = new Padding(15, 5, 15, 5);
+            btnAnalyzeTool.Size = new Size(97, 32);
             btnAnalyzeTool.Text = "▶ Анализ";
             // 
             // btnExportTool
             // 
-            btnExportTool.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            btnExportTool.BackColor = Color.White;
             btnExportTool.Enabled = false;
+            btnExportTool.Font = new Font("Segoe UI", 9F);
+            btnExportTool.ForeColor = Color.FromArgb(48, 48, 48);
             btnExportTool.Name = "btnExportTool";
-            btnExportTool.Size = new Size(71, 22);
+            btnExportTool.Padding = new Padding(10, 5, 10, 5);
+            btnExportTool.Size = new Size(91, 29);
             btnExportTool.Text = "💾 Экспорт";
             // 
             // mainContentPanel
             // 
             mainContentPanel.BackColor = Color.White;
             mainContentPanel.Dock = DockStyle.Fill;
-            mainContentPanel.Location = new Point(0, 99);
+            mainContentPanel.Location = new Point(0, 106);
             mainContentPanel.Name = "mainContentPanel";
-            mainContentPanel.Size = new Size(1024, 449);
+            mainContentPanel.Size = new Size(1024, 442);
             mainContentPanel.TabIndex = 1;
             // 
             // panelSettings
@@ -134,7 +146,7 @@ namespace KR_Algorithms_LogResearcher
             panelSettings.BackColor = Color.FromArgb(250, 250, 250);
             panelSettings.Controls.Add(tableLayoutPanelSettings);
             panelSettings.Dock = DockStyle.Top;
-            panelSettings.Location = new Point(0, 49);
+            panelSettings.Location = new Point(0, 56);
             panelSettings.MinimumSize = new Size(0, 50);
             panelSettings.Name = "panelSettings";
             panelSettings.Padding = new Padding(10, 8, 10, 8);
