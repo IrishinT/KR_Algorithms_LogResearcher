@@ -17,6 +17,11 @@ namespace KR_Algorithms_LogResearcher
 
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataVisualization.Charting.ChartArea trafficChartArea = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series trafficSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea statusCodesChartArea = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend statusCodesLegend = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series statusCodesSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
             menuStrip1 = new MenuStrip();
             fileMenu = new ToolStripMenuItem();
             openSubMenuItem = new ToolStripMenuItem();
@@ -29,6 +34,22 @@ namespace KR_Algorithms_LogResearcher
             btnAnalyzeTool = new ToolStripButton();
             btnExportTool = new ToolStripButton();
             mainContentPanel = new Panel();
+            tabControl = new TabControl();
+            tabOverview = new TabPage();
+            overviewLayout = new TableLayoutPanel();
+            panelCards = new TableLayoutPanel();
+            chartTraffic = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            statsPanel = new TableLayoutPanel();
+            lblTopIPs = new Label();
+            dgvTopIPs = new DataGridView();
+            colIP = new DataGridViewTextBoxColumn();
+            colIpCount = new DataGridViewTextBoxColumn();
+            colIpPercent = new DataGridViewTextBoxColumn();
+            lblStatusCodes = new Label();
+            tabIPs = new TabPage();
+            tabPages = new TabPage();
+            tabErrors = new TabPage();
+            tabSecurity = new TabPage();
             panelSettings = new Panel();
             tableLayoutPanelSettings = new TableLayoutPanel();
             lblFileLabel = new Label();
@@ -40,20 +61,21 @@ namespace KR_Algorithms_LogResearcher
             progressBar = new ToolStripProgressBar();
             openFileDialog1 = new OpenFileDialog();
             saveFileDialog1 = new SaveFileDialog();
-            tabControl = new TabControl();
-            tabOverview = new TabPage();
-            tabIPs = new TabPage();
-            tabPages = new TabPage();
-            tabErrors = new TabPage();
-            tabSecurity = new TabPage();
+            chartStatusCodes = new System.Windows.Forms.DataVisualization.Charting.Chart();
             menuStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             mainContentPanel.SuspendLayout();
+            tabControl.SuspendLayout();
+            tabOverview.SuspendLayout();
+            overviewLayout.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)chartTraffic).BeginInit();
+            statsPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvTopIPs).BeginInit();
             panelSettings.SuspendLayout();
             tableLayoutPanelSettings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numThreshold).BeginInit();
             statusStrip1.SuspendLayout();
-            tabControl.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)chartStatusCodes).BeginInit();
             SuspendLayout();
             // 
             // menuStrip1
@@ -161,6 +183,198 @@ namespace KR_Algorithms_LogResearcher
             mainContentPanel.Size = new Size(1024, 442);
             mainContentPanel.TabIndex = 1;
             // 
+            // tabControl
+            // 
+            tabControl.Controls.Add(tabOverview);
+            tabControl.Controls.Add(tabIPs);
+            tabControl.Controls.Add(tabPages);
+            tabControl.Controls.Add(tabErrors);
+            tabControl.Controls.Add(tabSecurity);
+            tabControl.Dock = DockStyle.Fill;
+            tabControl.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            tabControl.Location = new Point(0, 0);
+            tabControl.Name = "tabControl";
+            tabControl.SelectedIndex = 0;
+            tabControl.Size = new Size(1024, 442);
+            tabControl.TabIndex = 0;
+            // 
+            // tabOverview
+            // 
+            tabOverview.Controls.Add(overviewLayout);
+            tabOverview.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            tabOverview.Location = new Point(4, 24);
+            tabOverview.Name = "tabOverview";
+            tabOverview.Padding = new Padding(3);
+            tabOverview.Size = new Size(1016, 414);
+            tabOverview.TabIndex = 0;
+            tabOverview.Text = "📊 Обзор";
+            tabOverview.UseVisualStyleBackColor = true;
+            // 
+            // overviewLayout
+            // 
+            overviewLayout.ColumnCount = 1;
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            overviewLayout.Controls.Add(panelCards, 0, 0);
+            overviewLayout.Controls.Add(chartTraffic, 0, 1);
+            overviewLayout.Controls.Add(statsPanel, 0, 2);
+            overviewLayout.Dock = DockStyle.Fill;
+            overviewLayout.Location = new Point(3, 3);
+            overviewLayout.Name = "overviewLayout";
+            overviewLayout.RowCount = 3;
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 100F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 55F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 45F));
+            overviewLayout.Size = new Size(1010, 408);
+            overviewLayout.TabIndex = 0;
+            // 
+            // panelCards
+            // 
+            panelCards.ColumnCount = 4;
+            panelCards.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            panelCards.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            panelCards.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            panelCards.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            panelCards.Dock = DockStyle.Fill;
+            panelCards.Location = new Point(3, 3);
+            panelCards.Name = "panelCards";
+            panelCards.RowCount = 1;
+            panelCards.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            panelCards.Size = new Size(1004, 94);
+            panelCards.TabIndex = 0;
+            // 
+            // chartTraffic
+            // 
+            chartTraffic.BorderlineColor = Color.FromArgb(200, 200, 200);
+            chartTraffic.BorderlineDashStyle = System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid;
+            trafficChartArea.AxisX.Interval = 3D;
+            trafficChartArea.AxisX.Title = "Время (часы)";
+            trafficChartArea.AxisY.Title = "Запросов";
+            trafficChartArea.Name = "MainArea";
+            chartTraffic.ChartAreas.Add(trafficChartArea);
+            chartTraffic.Dock = DockStyle.Fill;
+            chartTraffic.Location = new Point(3, 103);
+            chartTraffic.Name = "chartTraffic";
+            trafficSeries.BorderWidth = 2;
+            trafficSeries.ChartArea = "MainArea";
+            trafficSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            trafficSeries.Color = Color.FromArgb(0, 102, 204);
+            trafficSeries.Name = "Трафик";
+            chartTraffic.Series.Add(trafficSeries);
+            chartTraffic.Size = new Size(1004, 163);
+            chartTraffic.TabIndex = 1;
+            // 
+            // statsPanel
+            // 
+            statsPanel.ColumnCount = 2;
+            statsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60F));
+            statsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
+            statsPanel.Controls.Add(lblTopIPs, 0, 0);
+            statsPanel.Controls.Add(dgvTopIPs, 0, 1);
+            statsPanel.Controls.Add(lblStatusCodes, 1, 0);
+            statsPanel.Controls.Add(chartStatusCodes, 1, 1);
+            statsPanel.Dock = DockStyle.Fill;
+            statsPanel.Location = new Point(3, 272);
+            statsPanel.Name = "statsPanel";
+            statsPanel.RowCount = 2;
+            statsPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));
+            statsPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 85F));
+            statsPanel.Size = new Size(1004, 133);
+            statsPanel.TabIndex = 2;
+            // 
+            // lblTopIPs
+            // 
+            lblTopIPs.AutoSize = true;
+            lblTopIPs.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            lblTopIPs.Location = new Point(3, 0);
+            lblTopIPs.Name = "lblTopIPs";
+            lblTopIPs.Size = new Size(87, 15);
+            lblTopIPs.TabIndex = 0;
+            lblTopIPs.Text = "Топ IP адресов";
+            // 
+            // dgvTopIPs
+            // 
+            dgvTopIPs.AllowUserToAddRows = false;
+            dgvTopIPs.AllowUserToDeleteRows = false;
+            dgvTopIPs.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvTopIPs.BackgroundColor = Color.White;
+            dgvTopIPs.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvTopIPs.Columns.AddRange(new DataGridViewColumn[] { colIP, colIpCount, colIpPercent });
+            dgvTopIPs.Dock = DockStyle.Fill;
+            dgvTopIPs.Location = new Point(3, 22);
+            dgvTopIPs.Name = "dgvTopIPs";
+            dgvTopIPs.ReadOnly = true;
+            dgvTopIPs.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvTopIPs.Size = new Size(596, 108);
+            dgvTopIPs.TabIndex = 1;
+            // 
+            // colIP
+            // 
+            colIP.HeaderText = "IP адрес";
+            colIP.Name = "colIP";
+            colIP.ReadOnly = true;
+            // 
+            // colIpCount
+            // 
+            colIpCount.HeaderText = "Запросов";
+            colIpCount.Name = "colIpCount";
+            colIpCount.ReadOnly = true;
+            // 
+            // colIpPercent
+            // 
+            colIpPercent.HeaderText = "%";
+            colIpPercent.Name = "colIpPercent";
+            colIpPercent.ReadOnly = true;
+            // 
+            // lblStatusCodes
+            // 
+            lblStatusCodes.AutoSize = true;
+            lblStatusCodes.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            lblStatusCodes.Location = new Point(605, 0);
+            lblStatusCodes.Name = "lblStatusCodes";
+            lblStatusCodes.Size = new Size(74, 15);
+            lblStatusCodes.TabIndex = 2;
+            lblStatusCodes.Text = "Коды ответа";
+            // 
+            // tabIPs
+            // 
+            tabIPs.Location = new Point(4, 24);
+            tabIPs.Name = "tabIPs";
+            tabIPs.Padding = new Padding(3);
+            tabIPs.Size = new Size(1016, 414);
+            tabIPs.TabIndex = 1;
+            tabIPs.Text = "IP адреса";
+            tabIPs.UseVisualStyleBackColor = true;
+            // 
+            // tabPages
+            // 
+            tabPages.Location = new Point(4, 24);
+            tabPages.Name = "tabPages";
+            tabPages.Padding = new Padding(3);
+            tabPages.Size = new Size(1016, 414);
+            tabPages.TabIndex = 2;
+            tabPages.Text = "Страницы";
+            tabPages.UseVisualStyleBackColor = true;
+            // 
+            // tabErrors
+            // 
+            tabErrors.Location = new Point(4, 24);
+            tabErrors.Name = "tabErrors";
+            tabErrors.Padding = new Padding(3);
+            tabErrors.Size = new Size(1016, 414);
+            tabErrors.TabIndex = 3;
+            tabErrors.Text = "⚠️ Ошибки";
+            tabErrors.UseVisualStyleBackColor = true;
+            // 
+            // tabSecurity
+            // 
+            tabSecurity.Location = new Point(4, 24);
+            tabSecurity.Name = "tabSecurity";
+            tabSecurity.Padding = new Padding(3);
+            tabSecurity.Size = new Size(1016, 414);
+            tabSecurity.TabIndex = 4;
+            tabSecurity.Text = "🔒 Безопасность";
+            tabSecurity.UseVisualStyleBackColor = true;
+            // 
             // panelSettings
             // 
             panelSettings.BackColor = Color.FromArgb(250, 250, 250);
@@ -264,71 +478,28 @@ namespace KR_Algorithms_LogResearcher
             progressBar.Style = ProgressBarStyle.Continuous;
             progressBar.Visible = false;
             // 
-            // tabControl
+            // chartStatusCodes
             // 
-            tabControl.Controls.Add(tabOverview);
-            tabControl.Controls.Add(tabIPs);
-            tabControl.Controls.Add(tabPages);
-            tabControl.Controls.Add(tabErrors);
-            tabControl.Controls.Add(tabSecurity);
-            tabControl.Dock = DockStyle.Fill;
-            tabControl.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            tabControl.Location = new Point(0, 0);
-            tabControl.Name = "tabControl";
-            tabControl.SelectedIndex = 0;
-            tabControl.Size = new Size(1024, 442);
-            tabControl.TabIndex = 0;
-            // 
-            // tabOverview
-            // 
-            tabOverview.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            tabOverview.Location = new Point(4, 24);
-            tabOverview.Name = "tabOverview";
-            tabOverview.Padding = new Padding(3);
-            tabOverview.Size = new Size(1016, 414);
-            tabOverview.TabIndex = 0;
-            tabOverview.Text = "📊 Обзор";
-            tabOverview.UseVisualStyleBackColor = true;
-            // 
-            // tabIPs
-            // 
-            tabIPs.Location = new Point(4, 24);
-            tabIPs.Name = "tabIPs";
-            tabIPs.Padding = new Padding(3);
-            tabIPs.Size = new Size(1016, 414);
-            tabIPs.TabIndex = 1;
-            tabIPs.Text = "IP адреса";
-            tabIPs.UseVisualStyleBackColor = true;
-            // 
-            // tabPages
-            // 
-            tabPages.Location = new Point(4, 24);
-            tabPages.Name = "tabPages";
-            tabPages.Padding = new Padding(3);
-            tabPages.Size = new Size(1016, 414);
-            tabPages.TabIndex = 2;
-            tabPages.Text = "Страницы";
-            tabPages.UseVisualStyleBackColor = true;
-            // 
-            // tabErrors
-            // 
-            tabErrors.Location = new Point(4, 24);
-            tabErrors.Name = "tabErrors";
-            tabErrors.Padding = new Padding(3);
-            tabErrors.Size = new Size(1016, 414);
-            tabErrors.TabIndex = 3;
-            tabErrors.Text = "⚠️ Ошибки";
-            tabErrors.UseVisualStyleBackColor = true;
-            // 
-            // tabSecurity
-            // 
-            tabSecurity.Location = new Point(4, 24);
-            tabSecurity.Name = "tabSecurity";
-            tabSecurity.Padding = new Padding(3);
-            tabSecurity.Size = new Size(1016, 414);
-            tabSecurity.TabIndex = 4;
-            tabSecurity.Text = "🔒 Безопасность";
-            tabSecurity.UseVisualStyleBackColor = true;
+            chartStatusCodes.Dock = DockStyle.Fill;
+            chartStatusCodes.BackColor = Color.White;
+            chartStatusCodes.BorderlineColor = Color.FromArgb(200, 200, 200);
+            chartStatusCodes.BorderlineDashStyle = System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid;
+            chartStatusCodes.BorderlineWidth = 1;
+
+            statusCodesChartArea.Name = "statusCodesChartArea";
+            chartStatusCodes.ChartAreas.Add(statusCodesChartArea);
+            statusCodesLegend.Name = "Legend1";
+            chartStatusCodes.Legends.Add(statusCodesLegend);
+            chartStatusCodes.Location = new Point(605, 22);
+            chartStatusCodes.Name = "chartStatusCodes";
+            statusCodesSeries.ChartArea = "statusCodesChartArea";
+            statusCodesSeries["PieLabelStyle"] = "Outside";
+            statusCodesSeries["PieLineColor"] = "Black";
+            statusCodesSeries.Name = "Коды";
+            chartStatusCodes.Series.Add(statusCodesSeries);
+            chartStatusCodes.Size = new Size(300, 108);
+            chartStatusCodes.TabIndex = 3;
+            chartStatusCodes.Text = "chart1";
             // 
             // MainMenu
             // 
@@ -348,15 +519,53 @@ namespace KR_Algorithms_LogResearcher
             toolStrip1.ResumeLayout(false);
             toolStrip1.PerformLayout();
             mainContentPanel.ResumeLayout(false);
+            tabControl.ResumeLayout(false);
+            tabOverview.ResumeLayout(false);
+            overviewLayout.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)chartTraffic).EndInit();
+            statsPanel.ResumeLayout(false);
+            statsPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvTopIPs).EndInit();
             panelSettings.ResumeLayout(false);
             tableLayoutPanelSettings.ResumeLayout(false);
             tableLayoutPanelSettings.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)numThreshold).EndInit();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
-            tabControl.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)chartStatusCodes).EndInit();
             ResumeLayout(false);
             PerformLayout();
+        }
+
+        private Panel CreateStatCard(string title, string value, Color color)
+        {
+            var panel = new Panel();
+            panel.Dock = DockStyle.Fill;
+            panel.BackColor = Color.White;
+            panel.BorderStyle = BorderStyle.FixedSingle;
+            panel.Padding = new Padding(10);
+            panel.Margin = new Padding(3);
+
+            var lblTitle = new Label();
+            lblTitle.Text = title;
+            lblTitle.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            lblTitle.ForeColor = Color.FromArgb(80, 80, 80);
+            lblTitle.AutoSize = true;
+            lblTitle.Location = new Point(10, 10);
+            lblTitle.Dock = DockStyle.Top;
+
+            var lblValue = new Label();
+            lblValue.Text = value;
+            lblValue.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
+            lblValue.ForeColor = color;
+            lblValue.AutoSize = true;
+            lblValue.Location = new Point(10, 35);
+            lblValue.Dock = DockStyle.Top;
+
+            panel.Controls.Add(lblValue);
+            panel.Controls.Add(lblTitle);
+
+            return panel;
         }
 
         #endregion
@@ -401,5 +610,16 @@ namespace KR_Algorithms_LogResearcher
         private TabPage tabPages;
         private TabPage tabErrors;
         private TabPage tabSecurity;
+        private TableLayoutPanel overviewLayout;
+        private TableLayoutPanel panelCards;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chartTraffic;
+        private TableLayoutPanel statsPanel;
+        private Label lblTopIPs;
+        private DataGridView dgvTopIPs;
+        private DataGridViewTextBoxColumn colIP;
+        private DataGridViewTextBoxColumn colIpCount;
+        private DataGridViewTextBoxColumn colIpPercent;
+        private Label lblStatusCodes;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chartStatusCodes;
     }
 }
