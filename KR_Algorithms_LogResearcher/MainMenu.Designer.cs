@@ -40,12 +40,20 @@ namespace KR_Algorithms_LogResearcher
             progressBar = new ToolStripProgressBar();
             openFileDialog1 = new OpenFileDialog();
             saveFileDialog1 = new SaveFileDialog();
+            tabControl = new TabControl();
+            tabOverview = new TabPage();
+            tabIPs = new TabPage();
+            tabPages = new TabPage();
+            tabErrors = new TabPage();
+            tabSecurity = new TabPage();
             menuStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
+            mainContentPanel.SuspendLayout();
             panelSettings.SuspendLayout();
             tableLayoutPanelSettings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numThreshold).BeginInit();
             statusStrip1.SuspendLayout();
+            tabControl.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
@@ -54,21 +62,21 @@ namespace KR_Algorithms_LogResearcher
             menuStrip1.Items.AddRange(new ToolStripItem[] { fileMenu, helpMenu });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(1024, 28);
+            menuStrip1.Size = new Size(1024, 24);
             menuStrip1.TabIndex = 4;
             // 
             // fileMenu
             // 
             fileMenu.DropDownItems.AddRange(new ToolStripItem[] { openSubMenuItem, exportSubMenuItem, separator1, exitSubMenuItem });
             fileMenu.Name = "fileMenu";
-            fileMenu.Size = new Size(59, 24);
+            fileMenu.Size = new Size(48, 20);
             fileMenu.Text = "&Файл";
             // 
             // openSubMenuItem
             // 
             openSubMenuItem.Name = "openSubMenuItem";
             openSubMenuItem.ShortcutKeys = Keys.Control | Keys.O;
-            openSubMenuItem.Size = new Size(224, 26);
+            openSubMenuItem.Size = new Size(173, 22);
             openSubMenuItem.Text = "&Открыть...";
             openSubMenuItem.Click += openSubMenuItem_Click;
             // 
@@ -76,25 +84,25 @@ namespace KR_Algorithms_LogResearcher
             // 
             exportSubMenuItem.Enabled = false;
             exportSubMenuItem.Name = "exportSubMenuItem";
-            exportSubMenuItem.Size = new Size(224, 26);
+            exportSubMenuItem.Size = new Size(173, 22);
             exportSubMenuItem.Text = "&Экспорт отчета...";
             // 
             // separator1
             // 
             separator1.Name = "separator1";
-            separator1.Size = new Size(221, 6);
+            separator1.Size = new Size(170, 6);
             // 
             // exitSubMenuItem
             // 
             exitSubMenuItem.Name = "exitSubMenuItem";
             exitSubMenuItem.ShortcutKeys = Keys.Alt | Keys.F4;
-            exitSubMenuItem.Size = new Size(224, 26);
+            exitSubMenuItem.Size = new Size(173, 22);
             exitSubMenuItem.Text = "В&ыход";
             // 
             // helpMenu
             // 
             helpMenu.Name = "helpMenu";
-            helpMenu.Size = new Size(81, 24);
+            helpMenu.Size = new Size(65, 20);
             helpMenu.Text = "Справка";
             helpMenu.Click += helpMenu_Click;
             // 
@@ -103,9 +111,9 @@ namespace KR_Algorithms_LogResearcher
             toolStrip1.GripStyle = ToolStripGripStyle.Hidden;
             toolStrip1.ImageScalingSize = new Size(20, 20);
             toolStrip1.Items.AddRange(new ToolStripItem[] { btnOpenTool, btnAnalyzeTool, btnExportTool });
-            toolStrip1.Location = new Point(0, 28);
+            toolStrip1.Location = new Point(0, 24);
             toolStrip1.Name = "toolStrip1";
-            toolStrip1.Size = new Size(1024, 37);
+            toolStrip1.Size = new Size(1024, 32);
             toolStrip1.TabIndex = 3;
             // 
             // btnOpenTool
@@ -116,7 +124,7 @@ namespace KR_Algorithms_LogResearcher
             btnOpenTool.Margin = new Padding(0, 0, 5, 0);
             btnOpenTool.Name = "btnOpenTool";
             btnOpenTool.Padding = new Padding(10, 5, 10, 5);
-            btnOpenTool.Size = new Size(116, 37);
+            btnOpenTool.Size = new Size(93, 32);
             btnOpenTool.Text = "📂 Открыть";
             btnOpenTool.Click += btnOpenTool_Click;
             // 
@@ -129,7 +137,7 @@ namespace KR_Algorithms_LogResearcher
             btnAnalyzeTool.Margin = new Padding(5, 0, 10, 0);
             btnAnalyzeTool.Name = "btnAnalyzeTool";
             btnAnalyzeTool.Padding = new Padding(15, 5, 15, 5);
-            btnAnalyzeTool.Size = new Size(114, 37);
+            btnAnalyzeTool.Size = new Size(97, 32);
             btnAnalyzeTool.Text = "▶ Анализ";
             // 
             // btnExportTool
@@ -140,16 +148,17 @@ namespace KR_Algorithms_LogResearcher
             btnExportTool.ForeColor = Color.FromArgb(48, 48, 48);
             btnExportTool.Name = "btnExportTool";
             btnExportTool.Padding = new Padding(10, 5, 10, 5);
-            btnExportTool.Size = new Size(113, 34);
+            btnExportTool.Size = new Size(91, 29);
             btnExportTool.Text = "💾 Экспорт";
             // 
             // mainContentPanel
             // 
             mainContentPanel.BackColor = Color.White;
+            mainContentPanel.Controls.Add(tabControl);
             mainContentPanel.Dock = DockStyle.Fill;
-            mainContentPanel.Location = new Point(0, 115);
+            mainContentPanel.Location = new Point(0, 106);
             mainContentPanel.Name = "mainContentPanel";
-            mainContentPanel.Size = new Size(1024, 433);
+            mainContentPanel.Size = new Size(1024, 442);
             mainContentPanel.TabIndex = 1;
             // 
             // panelSettings
@@ -157,7 +166,7 @@ namespace KR_Algorithms_LogResearcher
             panelSettings.BackColor = Color.FromArgb(250, 250, 250);
             panelSettings.Controls.Add(tableLayoutPanelSettings);
             panelSettings.Dock = DockStyle.Top;
-            panelSettings.Location = new Point(0, 65);
+            panelSettings.Location = new Point(0, 56);
             panelSettings.MinimumSize = new Size(0, 50);
             panelSettings.Name = "panelSettings";
             panelSettings.Padding = new Padding(10, 8, 10, 8);
@@ -187,9 +196,9 @@ namespace KR_Algorithms_LogResearcher
             // 
             lblFileLabel.Anchor = AnchorStyles.Left;
             lblFileLabel.AutoSize = true;
-            lblFileLabel.Location = new Point(3, 7);
+            lblFileLabel.Location = new Point(3, 9);
             lblFileLabel.Name = "lblFileLabel";
-            lblFileLabel.Size = new Size(48, 20);
+            lblFileLabel.Size = new Size(39, 15);
             lblFileLabel.TabIndex = 0;
             lblFileLabel.Text = "Файл:";
             // 
@@ -200,11 +209,11 @@ namespace KR_Algorithms_LogResearcher
             txtFilePath.BorderStyle = BorderStyle.FixedSingle;
             txtFilePath.Enabled = false;
             txtFilePath.ForeColor = Color.Gray;
-            txtFilePath.Location = new Point(59, 3);
+            txtFilePath.Location = new Point(50, 5);
             txtFilePath.Margin = new Padding(5, 0, 5, 0);
             txtFilePath.Name = "txtFilePath";
             txtFilePath.ReadOnly = true;
-            txtFilePath.Size = new Size(789, 27);
+            txtFilePath.Size = new Size(789, 23);
             txtFilePath.TabIndex = 1;
             txtFilePath.Text = "Файл не выбран";
             // 
@@ -212,10 +221,10 @@ namespace KR_Algorithms_LogResearcher
             // 
             lblThreshold.Anchor = AnchorStyles.Right;
             lblThreshold.AutoSize = true;
-            lblThreshold.Location = new Point(863, 7);
+            lblThreshold.Location = new Point(874, 9);
             lblThreshold.Margin = new Padding(10, 0, 5, 0);
             lblThreshold.Name = "lblThreshold";
-            lblThreshold.Size = new Size(56, 20);
+            lblThreshold.Size = new Size(45, 15);
             lblThreshold.TabIndex = 2;
             lblThreshold.Text = "Порог:";
             // 
@@ -223,11 +232,11 @@ namespace KR_Algorithms_LogResearcher
             // 
             numThreshold.Anchor = AnchorStyles.Right;
             numThreshold.Increment = new decimal(new int[] { 50, 0, 0, 0 });
-            numThreshold.Location = new Point(927, 3);
+            numThreshold.Location = new Point(927, 5);
             numThreshold.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             numThreshold.Minimum = new decimal(new int[] { 50, 0, 0, 0 });
             numThreshold.Name = "numThreshold";
-            numThreshold.Size = new Size(74, 27);
+            numThreshold.Size = new Size(74, 23);
             numThreshold.TabIndex = 3;
             numThreshold.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
@@ -235,15 +244,15 @@ namespace KR_Algorithms_LogResearcher
             // 
             statusStrip1.ImageScalingSize = new Size(20, 20);
             statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus, progressBar });
-            statusStrip1.Location = new Point(0, 522);
+            statusStrip1.Location = new Point(0, 526);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(1024, 26);
+            statusStrip1.Size = new Size(1024, 22);
             statusStrip1.TabIndex = 0;
             // 
             // lblStatus
             // 
             lblStatus.Name = "lblStatus";
-            lblStatus.Size = new Size(1009, 20);
+            lblStatus.Size = new Size(1009, 17);
             lblStatus.Spring = true;
             lblStatus.Text = "Готов к работе";
             lblStatus.TextAlign = ContentAlignment.MiddleLeft;
@@ -254,6 +263,72 @@ namespace KR_Algorithms_LogResearcher
             progressBar.Size = new Size(200, 18);
             progressBar.Style = ProgressBarStyle.Continuous;
             progressBar.Visible = false;
+            // 
+            // tabControl
+            // 
+            tabControl.Controls.Add(tabOverview);
+            tabControl.Controls.Add(tabIPs);
+            tabControl.Controls.Add(tabPages);
+            tabControl.Controls.Add(tabErrors);
+            tabControl.Controls.Add(tabSecurity);
+            tabControl.Dock = DockStyle.Fill;
+            tabControl.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            tabControl.Location = new Point(0, 0);
+            tabControl.Name = "tabControl";
+            tabControl.SelectedIndex = 0;
+            tabControl.Size = new Size(1024, 442);
+            tabControl.TabIndex = 0;
+            // 
+            // tabOverview
+            // 
+            tabOverview.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            tabOverview.Location = new Point(4, 24);
+            tabOverview.Name = "tabOverview";
+            tabOverview.Padding = new Padding(3);
+            tabOverview.Size = new Size(1016, 414);
+            tabOverview.TabIndex = 0;
+            tabOverview.Text = "📊 Обзор";
+            tabOverview.UseVisualStyleBackColor = true;
+            // 
+            // tabIPs
+            // 
+            tabIPs.Location = new Point(4, 24);
+            tabIPs.Name = "tabIPs";
+            tabIPs.Padding = new Padding(3);
+            tabIPs.Size = new Size(1016, 414);
+            tabIPs.TabIndex = 1;
+            tabIPs.Text = "IP адреса";
+            tabIPs.UseVisualStyleBackColor = true;
+            // 
+            // tabPages
+            // 
+            tabPages.Location = new Point(4, 24);
+            tabPages.Name = "tabPages";
+            tabPages.Padding = new Padding(3);
+            tabPages.Size = new Size(1016, 414);
+            tabPages.TabIndex = 2;
+            tabPages.Text = "Страницы";
+            tabPages.UseVisualStyleBackColor = true;
+            // 
+            // tabErrors
+            // 
+            tabErrors.Location = new Point(4, 24);
+            tabErrors.Name = "tabErrors";
+            tabErrors.Padding = new Padding(3);
+            tabErrors.Size = new Size(1016, 414);
+            tabErrors.TabIndex = 3;
+            tabErrors.Text = "⚠️ Ошибки";
+            tabErrors.UseVisualStyleBackColor = true;
+            // 
+            // tabSecurity
+            // 
+            tabSecurity.Location = new Point(4, 24);
+            tabSecurity.Name = "tabSecurity";
+            tabSecurity.Padding = new Padding(3);
+            tabSecurity.Size = new Size(1016, 414);
+            tabSecurity.TabIndex = 4;
+            tabSecurity.Text = "🔒 Безопасность";
+            tabSecurity.UseVisualStyleBackColor = true;
             // 
             // MainMenu
             // 
@@ -272,12 +347,14 @@ namespace KR_Algorithms_LogResearcher
             menuStrip1.PerformLayout();
             toolStrip1.ResumeLayout(false);
             toolStrip1.PerformLayout();
+            mainContentPanel.ResumeLayout(false);
             panelSettings.ResumeLayout(false);
             tableLayoutPanelSettings.ResumeLayout(false);
             tableLayoutPanelSettings.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)numThreshold).EndInit();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
+            tabControl.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -318,5 +395,11 @@ namespace KR_Algorithms_LogResearcher
         private OpenFileDialog openFileDialog1;
         private SaveFileDialog saveFileDialog1;
         private ToolStripMenuItem helpMenu;
+        private TabControl tabControl;
+        private TabPage tabOverview;
+        private TabPage tabIPs;
+        private TabPage tabPages;
+        private TabPage tabErrors;
+        private TabPage tabSecurity;
     }
 }
