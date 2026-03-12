@@ -95,5 +95,22 @@ namespace KR_Algorithms_LogResearcher
 
         // === ВЫХОД ===
         private void exitSubMenuItem_Click(object sender, EventArgs e) => this.Close();
+
+        private void helpMenu_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(
+                "Как работать с программой:\n\n" +
+                "1. Нажмите кнопку «Открыть» или выберите Файл → Открыть\n" +
+                "2. Выберите файл лога (*.log, *.txt)\n" +
+                "3. При необходимости измените порог (запросов/мин)\n" +
+                "4. Нажмите кнопку «Анализ»\n" +
+                "5. После завершения нажмите «Экспорт» для сохранения отчёта\n\n" +
+                "Горячие клавиши:\n" +
+                "Ctrl+O — Открыть файл\n" +
+                "Alt+F4 — Выход",
+                "Справка",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+        }
     }
 }
