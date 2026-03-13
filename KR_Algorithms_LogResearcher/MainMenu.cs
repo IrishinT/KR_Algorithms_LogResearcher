@@ -6,6 +6,21 @@ namespace KR_Algorithms_LogResearcher
         {
             InitializeComponent();
 
+
+            // Карточка 1: Всего запросов
+            var cardTotal = CreateStatCard("Всего запросов", "0", Color.FromArgb(0, 102, 204));
+            // Карточка 2: Уникальные IP
+            var cardUnique = CreateStatCard("Уникальные IP", "0", Color.FromArgb(0, 153, 76));
+            // Карточка 3: Ошибки
+            var cardErrors = CreateStatCard("Ошибки (4xx/5xx)", "0", Color.FromArgb(204, 0, 0));
+            // Карточка 4: Подозрительные
+            var cardSuspicious = CreateStatCard("Подозрительные", "0", Color.FromArgb(255, 153, 0));
+
+            panelCards.Controls.Add(cardTotal, 0, 0);
+            panelCards.Controls.Add(cardUnique, 1, 0);
+            panelCards.Controls.Add(cardErrors, 2, 0);
+            panelCards.Controls.Add(cardSuspicious, 3, 0);
+
             txtFilePath.DeselectAll();  // ← Убираем выделение
             txtFilePath.Select(0, 0);   // ← Сбрасываем курсор в начало
         }
@@ -112,5 +127,38 @@ namespace KR_Algorithms_LogResearcher
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
         }
+
+
+        private Panel CreateStatCard(string title, string value, Color color)
+        {
+            var panel = new Panel();
+            panel.Dock = DockStyle.Fill;
+            panel.BackColor = Color.White;
+            panel.BorderStyle = BorderStyle.FixedSingle;
+            panel.Padding = new Padding(10);
+            panel.Margin = new Padding(3);
+
+            var lblTitle = new Label();
+            lblTitle.Text = title;
+            lblTitle.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            lblTitle.ForeColor = Color.FromArgb(80, 80, 80);
+            lblTitle.AutoSize = true;
+            lblTitle.Location = new Point(10, 10);
+            lblTitle.Dock = DockStyle.Top;
+
+            var lblValue = new Label();
+            lblValue.Text = value;
+            lblValue.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
+            lblValue.ForeColor = color;
+            lblValue.AutoSize = true;
+            lblValue.Location = new Point(10, 35);
+            lblValue.Dock = DockStyle.Top;
+
+            panel.Controls.Add(lblValue);
+            panel.Controls.Add(lblTitle);
+
+            return panel;
+        }
+
     }
 }

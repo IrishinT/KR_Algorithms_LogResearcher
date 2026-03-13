@@ -17,11 +17,11 @@ namespace KR_Algorithms_LogResearcher
 
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea trafficChartArea = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Series trafficSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea statusCodesChartArea = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend statusCodesLegend = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series statusCodesSeries = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             menuStrip1 = new MenuStrip();
             fileMenu = new ToolStripMenuItem();
             openSubMenuItem = new ToolStripMenuItem();
@@ -46,7 +46,12 @@ namespace KR_Algorithms_LogResearcher
             colIpCount = new DataGridViewTextBoxColumn();
             colIpPercent = new DataGridViewTextBoxColumn();
             lblStatusCodes = new Label();
+            chartStatusCodes = new System.Windows.Forms.DataVisualization.Charting.Chart();
             tabIPs = new TabPage();
+            ipPanel = new TableLayoutPanel();
+            searchExportPanel = new TableLayoutPanel();
+            txtSearchIP = new TextBox();
+            btnExportCSV = new Button();
             tabPages = new TabPage();
             tabErrors = new TabPage();
             tabSecurity = new TabPage();
@@ -61,7 +66,6 @@ namespace KR_Algorithms_LogResearcher
             progressBar = new ToolStripProgressBar();
             openFileDialog1 = new OpenFileDialog();
             saveFileDialog1 = new SaveFileDialog();
-            chartStatusCodes = new System.Windows.Forms.DataVisualization.Charting.Chart();
             menuStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             mainContentPanel.SuspendLayout();
@@ -71,11 +75,14 @@ namespace KR_Algorithms_LogResearcher
             ((System.ComponentModel.ISupportInitialize)chartTraffic).BeginInit();
             statsPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvTopIPs).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)chartStatusCodes).BeginInit();
+            tabIPs.SuspendLayout();
+            ipPanel.SuspendLayout();
+            searchExportPanel.SuspendLayout();
             panelSettings.SuspendLayout();
             tableLayoutPanelSettings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numThreshold).BeginInit();
             statusStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)chartStatusCodes).BeginInit();
             SuspendLayout();
             // 
             // menuStrip1
@@ -246,20 +253,20 @@ namespace KR_Algorithms_LogResearcher
             // 
             chartTraffic.BorderlineColor = Color.FromArgb(200, 200, 200);
             chartTraffic.BorderlineDashStyle = System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid;
-            trafficChartArea.AxisX.Interval = 3D;
-            trafficChartArea.AxisX.Title = "Время (часы)";
-            trafficChartArea.AxisY.Title = "Запросов";
-            trafficChartArea.Name = "MainArea";
-            chartTraffic.ChartAreas.Add(trafficChartArea);
+            chartArea1.AxisX.Interval = 3D;
+            chartArea1.AxisX.Title = "Время (часы)";
+            chartArea1.AxisY.Title = "Запросов";
+            chartArea1.Name = "MainArea";
+            chartTraffic.ChartAreas.Add(chartArea1);
             chartTraffic.Dock = DockStyle.Fill;
             chartTraffic.Location = new Point(3, 103);
             chartTraffic.Name = "chartTraffic";
-            trafficSeries.BorderWidth = 2;
-            trafficSeries.ChartArea = "MainArea";
-            trafficSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            trafficSeries.Color = Color.FromArgb(0, 102, 204);
-            trafficSeries.Name = "Трафик";
-            chartTraffic.Series.Add(trafficSeries);
+            series1.BorderWidth = 2;
+            series1.ChartArea = "MainArea";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series1.Color = Color.FromArgb(0, 102, 204);
+            series1.Name = "Трафик";
+            chartTraffic.Series.Add(series1);
             chartTraffic.Size = new Size(1004, 163);
             chartTraffic.TabIndex = 1;
             // 
@@ -335,8 +342,28 @@ namespace KR_Algorithms_LogResearcher
             lblStatusCodes.TabIndex = 2;
             lblStatusCodes.Text = "Коды ответа";
             // 
+            // chartStatusCodes
+            // 
+            chartStatusCodes.BorderlineColor = Color.FromArgb(200, 200, 200);
+            chartStatusCodes.BorderlineDashStyle = System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid;
+            chartArea2.Name = "statusCodesChartArea";
+            chartStatusCodes.ChartAreas.Add(chartArea2);
+            chartStatusCodes.Dock = DockStyle.Fill;
+            legend1.Name = "Legend1";
+            chartStatusCodes.Legends.Add(legend1);
+            chartStatusCodes.Location = new Point(605, 22);
+            chartStatusCodes.Name = "chartStatusCodes";
+            series2.ChartArea = "statusCodesChartArea";
+            series2.Legend = "Legend1";
+            series2.Name = "Коды";
+            chartStatusCodes.Series.Add(series2);
+            chartStatusCodes.Size = new Size(396, 108);
+            chartStatusCodes.TabIndex = 3;
+            chartStatusCodes.Text = "chart1";
+            // 
             // tabIPs
             // 
+            tabIPs.Controls.Add(ipPanel);
             tabIPs.Location = new Point(4, 24);
             tabIPs.Name = "tabIPs";
             tabIPs.Padding = new Padding(3);
@@ -344,6 +371,67 @@ namespace KR_Algorithms_LogResearcher
             tabIPs.TabIndex = 1;
             tabIPs.Text = "IP адреса";
             tabIPs.UseVisualStyleBackColor = true;
+            // 
+            // ipPanel
+            // 
+            ipPanel.ColumnCount = 1;
+            ipPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            ipPanel.Controls.Add(searchExportPanel, 0, 0);
+            ipPanel.Dock = DockStyle.Fill;
+            ipPanel.Location = new Point(3, 3);
+            ipPanel.Name = "ipPanel";
+            ipPanel.RowCount = 4;
+            ipPanel.RowStyles.Clear(); // Сначала очистите все стили
+            ipPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));   // Поиск
+            ipPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 10F));   // Отступ
+            ipPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));   // Таблица
+            ipPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));   // Навигация
+            ipPanel.Size = new Size(1010, 408);
+            ipPanel.TabIndex = 0;
+            // 
+            // searchExportPanel
+            // 
+            searchExportPanel.ColumnCount = 2;
+            searchExportPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            searchExportPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
+            searchExportPanel.Controls.Add(txtSearchIP, 0, 0);
+            searchExportPanel.Controls.Add(btnExportCSV, 1, 0);
+            searchExportPanel.Dock = DockStyle.Fill;
+            searchExportPanel.Location = new Point(3, 3);
+            searchExportPanel.Name = "searchExportPanel";
+            searchExportPanel.RowCount = 1;
+            searchExportPanel.RowStyles.Clear();
+            searchExportPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            searchExportPanel.Size = new Size(1004, 34);
+            searchExportPanel.TabIndex = 0;
+            // 
+            // txtSearchIP
+            // 
+            txtSearchIP.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            txtSearchIP.Font = new Font("Segoe UI", 10F);
+            txtSearchIP.Location = new Point(3, 7);
+            txtSearchIP.Margin = new Padding(3, 0, 3, 0);
+            txtSearchIP.Name = "txtSearchIP";
+            txtSearchIP.PlaceholderText = "🔍 Введите IP для поиска...";
+            txtSearchIP.Size = new Size(855, 25);
+            txtSearchIP.TabIndex = 0;
+            // 
+            // btnExportCSV
+            // 
+            btnExportCSV.Anchor = AnchorStyles.Right;
+            btnExportCSV.BackColor = Color.White;
+            btnExportCSV.Cursor = Cursors.Hand;
+            btnExportCSV.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
+            btnExportCSV.FlatStyle = FlatStyle.Flat;
+            btnExportCSV.Font = new Font("Segoe UI", 9F);
+            btnExportCSV.Location = new Point(864, 5);
+            btnExportCSV.Margin = new Padding(3, 0, 0, 0);
+            btnExportCSV.Name = "btnExportCSV";
+            btnExportCSV.Size = new Size(120, 30);
+            btnExportCSV.TabIndex = 2;
+            btnExportCSV.Text = "📥 Экспорт";
+            btnExportCSV.TextAlign = ContentAlignment.MiddleCenter;
+            btnExportCSV.UseVisualStyleBackColor = false;
             // 
             // tabPages
             // 
@@ -478,29 +566,6 @@ namespace KR_Algorithms_LogResearcher
             progressBar.Style = ProgressBarStyle.Continuous;
             progressBar.Visible = false;
             // 
-            // chartStatusCodes
-            // 
-            chartStatusCodes.Dock = DockStyle.Fill;
-            chartStatusCodes.BackColor = Color.White;
-            chartStatusCodes.BorderlineColor = Color.FromArgb(200, 200, 200);
-            chartStatusCodes.BorderlineDashStyle = System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid;
-            chartStatusCodes.BorderlineWidth = 1;
-
-            statusCodesChartArea.Name = "statusCodesChartArea";
-            chartStatusCodes.ChartAreas.Add(statusCodesChartArea);
-            statusCodesLegend.Name = "Legend1";
-            chartStatusCodes.Legends.Add(statusCodesLegend);
-            chartStatusCodes.Location = new Point(605, 22);
-            chartStatusCodes.Name = "chartStatusCodes";
-            statusCodesSeries.ChartArea = "statusCodesChartArea";
-            statusCodesSeries["PieLabelStyle"] = "Outside";
-            statusCodesSeries["PieLineColor"] = "Black";
-            statusCodesSeries.Name = "Коды";
-            chartStatusCodes.Series.Add(statusCodesSeries);
-            chartStatusCodes.Size = new Size(300, 108);
-            chartStatusCodes.TabIndex = 3;
-            chartStatusCodes.Text = "chart1";
-            // 
             // MainMenu
             // 
             ClientSize = new Size(1024, 548);
@@ -526,46 +591,19 @@ namespace KR_Algorithms_LogResearcher
             statsPanel.ResumeLayout(false);
             statsPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dgvTopIPs).EndInit();
+            ((System.ComponentModel.ISupportInitialize)chartStatusCodes).EndInit();
+            tabIPs.ResumeLayout(false);
+            ipPanel.ResumeLayout(false);
+            searchExportPanel.ResumeLayout(false);
+            searchExportPanel.PerformLayout();
             panelSettings.ResumeLayout(false);
             tableLayoutPanelSettings.ResumeLayout(false);
             tableLayoutPanelSettings.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)numThreshold).EndInit();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)chartStatusCodes).EndInit();
             ResumeLayout(false);
             PerformLayout();
-        }
-
-        private Panel CreateStatCard(string title, string value, Color color)
-        {
-            var panel = new Panel();
-            panel.Dock = DockStyle.Fill;
-            panel.BackColor = Color.White;
-            panel.BorderStyle = BorderStyle.FixedSingle;
-            panel.Padding = new Padding(10);
-            panel.Margin = new Padding(3);
-
-            var lblTitle = new Label();
-            lblTitle.Text = title;
-            lblTitle.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
-            lblTitle.ForeColor = Color.FromArgb(80, 80, 80);
-            lblTitle.AutoSize = true;
-            lblTitle.Location = new Point(10, 10);
-            lblTitle.Dock = DockStyle.Top;
-
-            var lblValue = new Label();
-            lblValue.Text = value;
-            lblValue.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
-            lblValue.ForeColor = color;
-            lblValue.AutoSize = true;
-            lblValue.Location = new Point(10, 35);
-            lblValue.Dock = DockStyle.Top;
-
-            panel.Controls.Add(lblValue);
-            panel.Controls.Add(lblTitle);
-
-            return panel;
         }
 
         #endregion
@@ -621,5 +659,9 @@ namespace KR_Algorithms_LogResearcher
         private DataGridViewTextBoxColumn colIpPercent;
         private Label lblStatusCodes;
         private System.Windows.Forms.DataVisualization.Charting.Chart chartStatusCodes;
+        private TableLayoutPanel ipPanel;
+        private TableLayoutPanel searchExportPanel;
+        private TextBox txtSearchIP;
+        private Button btnExportCSV;
     }
 }
