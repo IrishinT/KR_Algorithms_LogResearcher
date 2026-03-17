@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KR_Algorithms_LogResearcher
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{F504DE35-5FA1-4037-8A07-16F143662AD2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Controllers", "Controllers\Controllers.csproj", "{2B133E35-3144-496A-9F26-CC7661E18B68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{F504DE35-5FA1-4037-8A07-16F143662AD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F504DE35-5FA1-4037-8A07-16F143662AD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F504DE35-5FA1-4037-8A07-16F143662AD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B133E35-3144-496A-9F26-CC7661E18B68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B133E35-3144-496A-9F26-CC7661E18B68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B133E35-3144-496A-9F26-CC7661E18B68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B133E35-3144-496A-9F26-CC7661E18B68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
