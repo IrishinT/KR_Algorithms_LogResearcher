@@ -17,11 +17,11 @@ namespace KR_Algorithms_LogResearcher
 
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
             menuStrip1 = new MenuStrip();
             fileMenu = new ToolStripMenuItem();
             openSubMenuItem = new ToolStripMenuItem();
@@ -65,8 +65,13 @@ namespace KR_Algorithms_LogResearcher
             txtSearchPage = new TextBox();
             btnExportPages = new Button();
             dgvPages = new DataGridView();
+            colPageUrl = new DataGridViewTextBoxColumn();
+            colPageRequests = new DataGridViewTextBoxColumn();
+            colPagePercent = new DataGridViewTextBoxColumn();
+            colPageFirst = new DataGridViewTextBoxColumn();
+            colPageLast = new DataGridViewTextBoxColumn();
+            colPageStatus = new DataGridViewTextBoxColumn();
             tabErrors = new TabPage();
-            tabSecurity = new TabPage();
             panelSettings = new Panel();
             tableLayoutPanelSettings = new TableLayoutPanel();
             lblFileLabel = new Label();
@@ -78,12 +83,16 @@ namespace KR_Algorithms_LogResearcher
             progressBar = new ToolStripProgressBar();
             openFileDialog1 = new OpenFileDialog();
             saveFileDialog1 = new SaveFileDialog();
-            colPageUrl = new DataGridViewTextBoxColumn();
-            colPageRequests = new DataGridViewTextBoxColumn();
-            colPagePercent = new DataGridViewTextBoxColumn();
-            colPageFirst = new DataGridViewTextBoxColumn();
-            colPageLast = new DataGridViewTextBoxColumn();
-            colPageStatus = new DataGridViewTextBoxColumn();
+            errorsPanel = new TableLayoutPanel();
+            errorsSearchPanel = new TableLayoutPanel();
+            txtSearchError = new TextBox();
+            btnExportErrors = new Button();
+            dgvErrors = new DataGridView();
+            colTime = new DataGridViewTextBoxColumn();
+            colErrorUrl = new DataGridViewTextBoxColumn();
+            colErrorCode = new DataGridViewTextBoxColumn();
+            colErrorMessage = new DataGridViewTextBoxColumn();
+            colIPError = new DataGridViewTextBoxColumn();
             menuStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             mainContentPanel.SuspendLayout();
@@ -102,10 +111,14 @@ namespace KR_Algorithms_LogResearcher
             pagesPanel.SuspendLayout();
             pagesSearchPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvPages).BeginInit();
+            tabErrors.SuspendLayout();
             panelSettings.SuspendLayout();
             tableLayoutPanelSettings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numThreshold).BeginInit();
             statusStrip1.SuspendLayout();
+            errorsPanel.SuspendLayout();
+            errorsSearchPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvErrors).BeginInit();
             SuspendLayout();
             // 
             // menuStrip1
@@ -219,7 +232,6 @@ namespace KR_Algorithms_LogResearcher
             tabControl.Controls.Add(tabIPs);
             tabControl.Controls.Add(tabPages);
             tabControl.Controls.Add(tabErrors);
-            tabControl.Controls.Add(tabSecurity);
             tabControl.Dock = DockStyle.Fill;
             tabControl.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 204);
             tabControl.Location = new Point(0, 0);
@@ -276,20 +288,20 @@ namespace KR_Algorithms_LogResearcher
             // 
             chartTraffic.BorderlineColor = Color.FromArgb(200, 200, 200);
             chartTraffic.BorderlineDashStyle = System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid;
-            chartArea1.AxisX.Interval = 3D;
-            chartArea1.AxisX.Title = "Время (часы)";
-            chartArea1.AxisY.Title = "Запросов";
-            chartArea1.Name = "MainArea";
-            chartTraffic.ChartAreas.Add(chartArea1);
+            chartArea3.AxisX.Interval = 3D;
+            chartArea3.AxisX.Title = "Время (часы)";
+            chartArea3.AxisY.Title = "Запросов";
+            chartArea3.Name = "MainArea";
+            chartTraffic.ChartAreas.Add(chartArea3);
             chartTraffic.Dock = DockStyle.Fill;
             chartTraffic.Location = new Point(3, 103);
             chartTraffic.Name = "chartTraffic";
-            series1.BorderWidth = 2;
-            series1.ChartArea = "MainArea";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Color = Color.FromArgb(0, 102, 204);
-            series1.Name = "Трафик";
-            chartTraffic.Series.Add(series1);
+            series3.BorderWidth = 2;
+            series3.ChartArea = "MainArea";
+            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series3.Color = Color.FromArgb(0, 102, 204);
+            series3.Name = "Трафик";
+            chartTraffic.Series.Add(series3);
             chartTraffic.Size = new Size(1004, 163);
             chartTraffic.TabIndex = 1;
             // 
@@ -376,17 +388,17 @@ namespace KR_Algorithms_LogResearcher
             // 
             chartStatusCodes.BorderlineColor = Color.FromArgb(200, 200, 200);
             chartStatusCodes.BorderlineDashStyle = System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid;
-            chartArea2.Name = "statusCodesChartArea";
-            chartStatusCodes.ChartAreas.Add(chartArea2);
+            chartArea4.Name = "statusCodesChartArea";
+            chartStatusCodes.ChartAreas.Add(chartArea4);
             chartStatusCodes.Dock = DockStyle.Fill;
-            legend1.Name = "Legend1";
-            chartStatusCodes.Legends.Add(legend1);
+            legend2.Name = "Legend1";
+            chartStatusCodes.Legends.Add(legend2);
             chartStatusCodes.Location = new Point(605, 22);
             chartStatusCodes.Name = "chartStatusCodes";
-            series2.ChartArea = "statusCodesChartArea";
-            series2.Legend = "Legend1";
-            series2.Name = "Коды";
-            chartStatusCodes.Series.Add(series2);
+            series4.ChartArea = "statusCodesChartArea";
+            series4.Legend = "Legend1";
+            series4.Name = "Коды";
+            chartStatusCodes.Series.Add(series4);
             chartStatusCodes.Size = new Size(396, 108);
             chartStatusCodes.TabIndex = 3;
             chartStatusCodes.Text = "chart1";
@@ -614,8 +626,45 @@ namespace KR_Algorithms_LogResearcher
             dgvPages.Size = new Size(1004, 318);
             dgvPages.TabIndex = 1;
             // 
+            // colPageUrl
+            // 
+            colPageUrl.HeaderText = "Страница";
+            colPageUrl.Name = "colPageUrl";
+            colPageUrl.ReadOnly = true;
+            // 
+            // colPageRequests
+            // 
+            colPageRequests.HeaderText = "Запросов";
+            colPageRequests.Name = "colPageRequests";
+            colPageRequests.ReadOnly = true;
+            // 
+            // colPagePercent
+            // 
+            colPagePercent.HeaderText = "%";
+            colPagePercent.Name = "colPagePercent";
+            colPagePercent.ReadOnly = true;
+            // 
+            // colPageFirst
+            // 
+            colPageFirst.HeaderText = "Первый";
+            colPageFirst.Name = "colPageFirst";
+            colPageFirst.ReadOnly = true;
+            // 
+            // colPageLast
+            // 
+            colPageLast.HeaderText = "Последний";
+            colPageLast.Name = "colPageLast";
+            colPageLast.ReadOnly = true;
+            // 
+            // colPageStatus
+            // 
+            colPageStatus.HeaderText = "Статус";
+            colPageStatus.Name = "colPageStatus";
+            colPageStatus.ReadOnly = true;
+            // 
             // tabErrors
             // 
+            tabErrors.Controls.Add(errorsPanel);
             tabErrors.Location = new Point(4, 24);
             tabErrors.Name = "tabErrors";
             tabErrors.Padding = new Padding(3);
@@ -623,16 +672,6 @@ namespace KR_Algorithms_LogResearcher
             tabErrors.TabIndex = 3;
             tabErrors.Text = "⚠️ Ошибки";
             tabErrors.UseVisualStyleBackColor = true;
-            // 
-            // tabSecurity
-            // 
-            tabSecurity.Location = new Point(4, 24);
-            tabSecurity.Name = "tabSecurity";
-            tabSecurity.Padding = new Padding(3);
-            tabSecurity.Size = new Size(1016, 414);
-            tabSecurity.TabIndex = 4;
-            tabSecurity.Text = "🔒 Безопасность";
-            tabSecurity.UseVisualStyleBackColor = true;
             // 
             // panelSettings
             // 
@@ -737,41 +776,117 @@ namespace KR_Algorithms_LogResearcher
             progressBar.Style = ProgressBarStyle.Continuous;
             progressBar.Visible = false;
             // 
-            // colPageUrl
+            // errorsPanel
             // 
-            colPageUrl.HeaderText = "Страница";
-            colPageUrl.Name = "colPageUrl";
-            colPageUrl.ReadOnly = true;
+            errorsPanel.ColumnCount = 1;
+            errorsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            errorsPanel.Controls.Add(errorsSearchPanel, 0, 0);
+            errorsPanel.Controls.Add(dgvErrors, 0, 2);
+            errorsPanel.Dock = DockStyle.Fill;
+            errorsPanel.Location = new Point(3, 3);
+            errorsPanel.Name = "errorsPanel";
+            errorsPanel.RowCount = 4;
+            errorsPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+            errorsPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 10F));
+            errorsPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            errorsPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+            errorsPanel.Size = new Size(1010, 408);
+            errorsPanel.TabIndex = 1;
             // 
-            // colPageRequests
+            // errorsSearchPanel
             // 
-            colPageRequests.HeaderText = "Запросов";
-            colPageRequests.Name = "colPageRequests";
-            colPageRequests.ReadOnly = true;
+            errorsSearchPanel.ColumnCount = 2;
+            errorsSearchPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            errorsSearchPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
+            errorsSearchPanel.Controls.Add(txtSearchError, 0, 0);
+            errorsSearchPanel.Controls.Add(btnExportErrors, 1, 0);
+            errorsSearchPanel.Dock = DockStyle.Fill;
+            errorsSearchPanel.Location = new Point(3, 3);
+            errorsSearchPanel.Name = "errorsSearchPanel";
+            errorsSearchPanel.RowCount = 1;
+            errorsSearchPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            errorsSearchPanel.Size = new Size(1004, 34);
+            errorsSearchPanel.TabIndex = 0;
             // 
-            // colPagePercent
+            // txtSearchError
             // 
-            colPagePercent.HeaderText = "%";
-            colPagePercent.Name = "colPagePercent";
-            colPagePercent.ReadOnly = true;
+            txtSearchError.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            txtSearchError.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            txtSearchError.Location = new Point(3, 4);
+            txtSearchError.Name = "txtSearchError";
+            txtSearchError.PlaceholderText = "🔍 Введите сообщение ошибки для поиска";
+            txtSearchError.Size = new Size(878, 26);
+            txtSearchError.TabIndex = 0;
             // 
-            // colPageFirst
+            // btnExportErrors
             // 
-            colPageFirst.HeaderText = "Первый";
-            colPageFirst.Name = "colPageFirst";
-            colPageFirst.ReadOnly = true;
+            btnExportErrors.Anchor = AnchorStyles.Right;
+            btnExportErrors.BackColor = Color.White;
+            btnExportErrors.Cursor = Cursors.Hand;
+            btnExportErrors.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
+            btnExportErrors.FlatStyle = FlatStyle.Flat;
+            btnExportErrors.Font = new Font("Segoe UI", 9F);
+            btnExportErrors.Location = new Point(887, 3);
+            btnExportErrors.Name = "btnExportErrors";
+            btnExportErrors.Size = new Size(114, 28);
+            btnExportErrors.TabIndex = 2;
+            btnExportErrors.Text = "📥 Экспорт CSV";
+            btnExportErrors.UseVisualStyleBackColor = false;
             // 
-            // colPageLast
+            // dgvErrors
             // 
-            colPageLast.HeaderText = "Последний";
-            colPageLast.Name = "colPageLast";
-            colPageLast.ReadOnly = true;
+            dgvErrors.AllowUserToAddRows = false;
+            dgvErrors.AllowUserToDeleteRows = false;
+            dgvErrors.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvErrors.BackgroundColor = Color.White;
+            dgvErrors.BorderStyle = BorderStyle.None;
+            dgvErrors.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgvErrors.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            dgvErrors.ColumnHeadersHeight = 40;
+            dgvErrors.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dgvErrors.Columns.AddRange(new DataGridViewColumn[] { colTime, colErrorUrl, colErrorCode, colErrorMessage, colIPError });
+            dgvErrors.Dock = DockStyle.Fill;
+            dgvErrors.EnableHeadersVisualStyles = false;
+            dgvErrors.GridColor = Color.FromArgb(230, 230, 230);
+            dgvErrors.Location = new Point(3, 50);
+            dgvErrors.Margin = new Padding(3, 0, 3, 0);
+            dgvErrors.Name = "dgvErrors";
+            dgvErrors.ReadOnly = true;
+            dgvErrors.RowHeadersVisible = false;
+            dgvErrors.RowTemplate.Height = 35;
+            dgvErrors.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvErrors.Size = new Size(1004, 318);
+            dgvErrors.TabIndex = 1;
             // 
-            // colPageStatus
+            // colTime
             // 
-            colPageStatus.HeaderText = "Статус";
-            colPageStatus.Name = "colPageStatus";
-            colPageStatus.ReadOnly = true;
+            colTime.HeaderText = "Время";
+            colTime.Name = "colTime";
+            colTime.ReadOnly = true;
+            // 
+            // colErrorUrl
+            // 
+            colErrorUrl.HeaderText = "Страница";
+            colErrorUrl.Name = "colErrorUrl";
+            colErrorUrl.ReadOnly = true;
+            // 
+            // colErrorCode
+            // 
+            colErrorCode.HeaderText = "Код";
+            colErrorCode.Name = "colErrorCode";
+            colErrorCode.ReadOnly = true;
+            // 
+            // colErrorMessage
+            // 
+            colErrorMessage.HeaderText = "Сообщение";
+            colErrorMessage.Name = "colErrorMessage";
+            colErrorMessage.ReadOnly = true;
+            // 
+            // colIPError
+            // 
+            colIPError.HeaderText = "IP адрес";
+            colIPError.Name = "colIPError";
+            colIPError.ReadOnly = true;
             // 
             // MainMenu
             // 
@@ -809,12 +924,17 @@ namespace KR_Algorithms_LogResearcher
             pagesSearchPanel.ResumeLayout(false);
             pagesSearchPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dgvPages).EndInit();
+            tabErrors.ResumeLayout(false);
             panelSettings.ResumeLayout(false);
             tableLayoutPanelSettings.ResumeLayout(false);
             tableLayoutPanelSettings.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)numThreshold).EndInit();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
+            errorsPanel.ResumeLayout(false);
+            errorsSearchPanel.ResumeLayout(false);
+            errorsSearchPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvErrors).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -894,5 +1014,15 @@ namespace KR_Algorithms_LogResearcher
         private DataGridViewTextBoxColumn colPageFirst;
         private DataGridViewTextBoxColumn colPageLast;
         private DataGridViewTextBoxColumn colPageStatus;
+        private TableLayoutPanel errorsPanel;
+        private TableLayoutPanel errorsSearchPanel;
+        private TextBox txtSearchError;
+        private Button btnExportErrors;
+        private DataGridView dgvErrors;
+        private DataGridViewTextBoxColumn colTime;
+        private DataGridViewTextBoxColumn colErrorUrl;
+        private DataGridViewTextBoxColumn colErrorCode;
+        private DataGridViewTextBoxColumn colErrorMessage;
+        private DataGridViewTextBoxColumn colIPError;
     }
 }
