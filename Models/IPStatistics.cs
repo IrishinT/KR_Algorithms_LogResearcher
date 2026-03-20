@@ -13,6 +13,7 @@ namespace Models
         public double Percentage { get; set; }
         public DateTime FirstSeen { get; set; }
         public DateTime LastSeen { get; set; }
-        public bool IsSuspicious => RequestCount > 1000; // Простое правило
+        public int SuspiciousThreshold { get; set; } = 100;
+        public bool IsSuspicious => RequestCount > SuspiciousThreshold;
     }
 }

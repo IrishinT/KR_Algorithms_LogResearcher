@@ -143,7 +143,6 @@ namespace KR_Algorithms_LogResearcher
             openSubMenuItem.ShortcutKeys = Keys.Control | Keys.O;
             openSubMenuItem.Size = new Size(173, 22);
             openSubMenuItem.Text = "&Открыть...";
-            openSubMenuItem.Click += openSubMenuItem_Click;
             // 
             // exportSubMenuItem
             // 
@@ -169,7 +168,6 @@ namespace KR_Algorithms_LogResearcher
             helpMenu.Name = "helpMenu";
             helpMenu.Size = new Size(65, 20);
             helpMenu.Text = "Справка";
-            helpMenu.Click += helpMenu_Click;
             // 
             // toolStrip1
             // 
@@ -191,7 +189,6 @@ namespace KR_Algorithms_LogResearcher
             btnOpenTool.Padding = new Padding(10, 5, 10, 5);
             btnOpenTool.Size = new Size(93, 32);
             btnOpenTool.Text = "📂 Открыть";
-            btnOpenTool.Click += btnOpenTool_Click;
             // 
             // btnAnalyzeTool
             // 

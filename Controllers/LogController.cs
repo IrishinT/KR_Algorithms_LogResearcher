@@ -1,4 +1,5 @@
-﻿using Models;
+﻿// Controllers/LogController.cs
+using Models;
 using System.Text.RegularExpressions;
 
 namespace Controllers
@@ -6,6 +7,10 @@ namespace Controllers
     public class LogController
     {
         private List<LogEntry> _entries = new List<LogEntry>();
+        private LogFormat _currentFormat = LogFormat.Unknown;
+
+        // Порог подозрительной активности (из UI)
+        public int SuspiciousThreshold { get; set; } = 100;
 
         // Основная статистика
         public int TotalRequests => _entries.Count;
@@ -13,6 +18,7 @@ namespace Controllers
         public int TotalErrors => _entries.Count(x => x.StatusCode >= 400);
         public int Errors404 => _entries.Count(x => x.StatusCode == 404);
         public int Errors500 => _entries.Count(x => x.StatusCode >= 500);
+        public int SuspiciousIPs => IPStats.Count(x => x.RequestCount > SuspiciousThreshold);
 
         // Данные для отображения
         public List<IPStatistics> IPStats { get; private set; } = new List<IPStatistics>();
@@ -23,66 +29,155 @@ namespace Controllers
         public Dictionary<string, int> HourlyTraffic { get; private set; } = new Dictionary<string, int>();
         public Dictionary<int, int> StatusCodeStats { get; private set; } = new Dictionary<int, int>();
 
+        // Событие для прогресс-бара
+        public event Action<int, int> OnProgress;
+
         public void ParseFile(string filePath)
         {
             _entries.Clear();
-            var lines = File.ReadAllLines(filePath);
+            _currentFormat = LogFormat.Unknown;
 
+            var lines = File.ReadLines(filePath); // Потоковое чтение для больших файлов
+            int totalLines = 0;
+            int processedLines = 0;
+
+            // Сначала определяем формат
+            foreach (var line in lines.Take(100))
+            {
+                var format = DetectFormat(line);
+                if (format != LogFormat.Unknown)
+                {
+                    _currentFormat = format;
+                    break;
+                }
+            }
+
+            if (_currentFormat == LogFormat.Unknown)
+                _currentFormat = LogFormat.Apache; // По умолчанию
+
+            // Парсим весь файл
+            lines = File.ReadLines(filePath);
             foreach (var line in lines)
             {
+                totalLines++;
                 var entry = ParseLine(line);
                 if (entry != null)
                     _entries.Add(entry);
+
+                // Обновляем прогресс каждые 1000 строк
+                if (totalLines % 1000 == 0)
+                {
+                    processedLines += 1000;
+                    OnProgress?.Invoke(processedLines, totalLines);
+                }
             }
 
+            OnProgress?.Invoke(totalLines, totalLines);
             CalculateStatistics();
+        }
+
+        private LogFormat DetectFormat(string line)
+        {
+            // Nginx: IP - - [date] "METHOD URL PROTO" status size "referer" "user-agent"
+            if (Regex.IsMatch(line, @""".*""\s+"".*""\s+"".*""$"))
+                return LogFormat.Nginx;
+
+            // Apache Combined: похож на Nginx
+            if (Regex.IsMatch(line, @""".*""\s+"".*""$"))
+                return LogFormat.ApacheCombined;
+
+            // Apache Common: IP - - [date] "METHOD URL PROTO" status size
+            if (Regex.IsMatch(line, @"^\d+\.\d+\.\d+\.\d+\s+-\s+-\s+\["))
+                return LogFormat.Apache;
+
+            return LogFormat.Unknown;
         }
 
         private LogEntry ParseLine(string line)
         {
             try
             {
-                // Простейший парсер для Apache логов
-                // 127.0.0.1 - - [10/Oct/2023:13:55:36 +0300] "GET /index.html HTTP/1.1" 200 2326
-                var parts = line.Split(' ');
-                if (parts.Length < 10) return null;
-
-                var ip = parts[0];
-
-                // Парсим время
-                var timeStr = line.Split('[')[1].Split(']')[0];
-                var timestamp = DateTime.ParseExact(
-                    timeStr.Split(' ')[0],
-                    "dd/MMM/yyyy:HH:mm:ss",
-                    System.Globalization.CultureInfo.InvariantCulture);
-
-                // Парсим запрос
-                var request = line.Split('"')[1].Split(' ');
-                var method = request[0];
-                var url = request.Length > 1 ? request[1] : "-";
-
-                // Парсим статус и размер
-                var status = int.Parse(parts[^2]);
-                var size = int.Parse(parts[^1]);
-
-                return new LogEntry
+                switch (_currentFormat)
                 {
-                    IP = ip,
-                    Timestamp = timestamp,
-                    Method = method,
-                    Url = url,
-                    StatusCode = status,
-                    Size = size
-                };
+                    case LogFormat.Nginx:
+                    case LogFormat.ApacheCombined:
+                        return ParseCombinedLog(line);
+                    case LogFormat.Apache:
+                    default:
+                        return ParseCommonLog(line);
+                }
             }
             catch
             {
-                return null; // Игнорируем кривые строки
+                return null;
             }
         }
 
-        private void CalculateStatistics()
+        private LogEntry ParseCommonLog(string line)
         {
+            // 127.0.0.1 - - [10/Oct/2023:13:55:36 +0300] "GET /index.html HTTP/1.1" 200 2326
+            var match = Regex.Match(line,
+                @"^(\S+)\s+\S+\s+\S+\s+\[([^\]]+)\]\s+""(\S+)\s+(\S+)\s+[^""]*""\s+(\d+)\s+(\d+|-)");
+
+            if (!match.Success) return null;
+
+            return new LogEntry
+            {
+                IP = match.Groups[1].Value,
+                Timestamp = ParseTimestamp(match.Groups[2].Value),
+                Method = match.Groups[3].Value,
+                Url = match.Groups[4].Value,
+                StatusCode = int.Parse(match.Groups[5].Value),
+                Size = match.Groups[6].Value == "-" ? 0 : int.Parse(match.Groups[6].Value)
+            };
+        }
+
+        private LogEntry ParseCombinedLog(string line)
+        {
+            // Nginx/Apache Combined с referer и user-agent
+            var match = Regex.Match(line,
+                @"^(\S+)\s+\S+\s+\S+\s+\[([^\]]+)\]\s+""(\S+)\s+(\S+)\s+[^""]*""\s+(\d+)\s+(\d+|-)\s+""[^""]*""\s+""[^""]*""");
+
+            if (!match.Success)
+                return ParseCommonLog(line); // Пробуем как common
+
+            return new LogEntry
+            {
+                IP = match.Groups[1].Value,
+                Timestamp = ParseTimestamp(match.Groups[2].Value),
+                Method = match.Groups[3].Value,
+                Url = match.Groups[4].Value,
+                StatusCode = int.Parse(match.Groups[5].Value),
+                Size = match.Groups[6].Value == "-" ? 0 : int.Parse(match.Groups[6].Value)
+            };
+        }
+
+        private DateTime ParseTimestamp(string timestamp)
+        {
+            // 10/Oct/2023:13:55:36 +0300
+            var formats = new[]
+            {
+                "dd/MMM/yyyy:HH:mm:ss zzz",
+                "dd/MMM/yyyy:HH:mm:ss",
+                "yyyy-MM-dd HH:mm:ss",
+                "dd/MMM/yyyy HH:mm:ss"
+            };
+
+            foreach (var format in formats)
+            {
+                if (DateTime.TryParseExact(timestamp, format,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out var result))
+                    return result;
+            }
+
+            return DateTime.Now;
+        }
+
+        public void CalculateStatistics()
+        {
+            if (_entries.Count == 0) return;
+
             // Статистика по IP
             IPStats = _entries
                 .GroupBy(x => x.IP)
@@ -92,7 +187,8 @@ namespace Controllers
                     RequestCount = g.Count(),
                     FirstSeen = g.Min(x => x.Timestamp),
                     LastSeen = g.Max(x => x.Timestamp),
-                    Percentage = (double)g.Count() / _entries.Count * 100
+                    Percentage = (double)g.Count() / _entries.Count * 100,
+                    SuspiciousThreshold = SuspiciousThreshold
                 })
                 .OrderByDescending(x => x.RequestCount)
                 .ToList();
@@ -118,7 +214,7 @@ namespace Controllers
                 .OrderByDescending(x => x.Timestamp)
                 .ToList();
 
-            // Почасовая статистика для графика
+            // Почасовая статистика
             HourlyTraffic = _entries
                 .GroupBy(x => x.Timestamp.ToString("HH:00"))
                 .OrderBy(g => g.Key)
@@ -136,9 +232,8 @@ namespace Controllers
         {
             if (string.IsNullOrWhiteSpace(query))
                 return IPStats;
-
             return IPStats
-                .Where(x => x.IP.Contains(query))
+                .Where(x => x.IP.Contains(query, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
 
@@ -146,7 +241,6 @@ namespace Controllers
         {
             if (string.IsNullOrWhiteSpace(query))
                 return PageStats;
-
             return PageStats
                 .Where(x => x.Url.Contains(query, StringComparison.OrdinalIgnoreCase))
                 .ToList();
@@ -156,11 +250,38 @@ namespace Controllers
         {
             if (string.IsNullOrWhiteSpace(query))
                 return Errors;
-
             return Errors
                 .Where(x => x.Url.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                           x.IP.Contains(query))
+                           x.IP.Contains(query, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
+
+        // Экспорт в CSV
+        public void ExportToCSV(string filePath, ExportType type)
+        {
+            using var writer = new StreamWriter(filePath);
+
+            switch (type)
+            {
+                case ExportType.IP:
+                    writer.WriteLine("IP,Запросов,Процент,Первый,Последний,Статус");
+                    foreach (var ip in IPStats)
+                        writer.WriteLine($"{ip.IP},{ip.RequestCount},{ip.Percentage:F2},{ip.FirstSeen},{ip.LastSeen},{(ip.IsSuspicious ? "Подозр." : "Норма")}");
+                    break;
+                case ExportType.Pages:
+                    writer.WriteLine("URL,Запросов,Процент,Ошибок,Статус");
+                    foreach (var page in PageStats)
+                        writer.WriteLine($"{page.Url},{page.RequestCount},{page.Percentage:F2},{page.ErrorCount},{(page.ErrorCount > 0 ? "С ошибками" : "OK")}");
+                    break;
+                case ExportType.Errors:
+                    writer.WriteLine("Время,URL,Код,IP");
+                    foreach (var error in Errors)
+                        writer.WriteLine($"{error.Timestamp},{error.Url},{error.StatusCode},{error.IP}");
+                    break;
+            }
+        }
     }
+
+    public enum LogFormat { Unknown, Apache, ApacheCombined, Nginx }
+    public enum ExportType { IP, Pages, Errors }
 }
