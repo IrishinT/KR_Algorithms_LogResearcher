@@ -1,6 +1,7 @@
-using System.Reflection.Metadata;
-using Models;
 using Controllers;
+using Models;
+using System.Reflection.Metadata;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace KR_Algorithms_LogResearcher
 {
@@ -16,10 +17,8 @@ namespace KR_Algorithms_LogResearcher
             InitializeComponent();
             InitializeStatCards();
 
-            // ✅ Явно подключаем ВСЕ обработчики (дублирование безопасно)
             btnOpenTool.Click += BtnOpenTool_Click;
             btnAnalyzeTool.Click += btnAnalyzeTool_Click;
-            btnExportTool.Click += btnExportTool_Click;
 
             openSubMenuItem.Click += BtnOpenTool_Click;  // Переиспользуем логику
             exitSubMenuItem.Click += ExitSubMenuItem_Click;
@@ -37,9 +36,6 @@ namespace KR_Algorithms_LogResearcher
 
             // Порог
             numThreshold.ValueChanged += NumThreshold_ValueChanged;
-
-            // Прогресс (раскомментируйте, если нужен)
-            // _logController.OnProgress += UpdateProgress;
         }
 
         private void InitializeStatCards()
@@ -177,7 +173,13 @@ namespace KR_Algorithms_LogResearcher
                 // График трафика
                 chartTraffic.Series["Трафик"].Points.Clear();
                 foreach (var item in _logController.HourlyTraffic)
-                    chartTraffic.Series["Трафик"].Points.AddXY(item.Key, item.Value);
+                {
+                    chartTraffic.Series["Трафик"].Points.AddXY(item.Key.ToOADate(), item.Value);
+                }
+
+                chartTraffic.ChartAreas[0].AxisX.LabelStyle.Format = "HH:00";
+                chartTraffic.ChartAreas[0].AxisX.IntervalType = DateTimeIntervalType.Hours;
+                chartTraffic.ChartAreas[0].AxisX.Interval = 1;
 
                 // Топ IP
                 dgvTopIPs.Rows.Clear();
@@ -186,8 +188,21 @@ namespace KR_Algorithms_LogResearcher
 
                 // Круговая диаграмма статусов
                 chartStatusCodes.Series["Коды"].Points.Clear();
+
                 foreach (var code in _logController.StatusCodeStats)
+                {
                     chartStatusCodes.Series["Коды"].Points.AddXY(code.Key.ToString(), code.Value);
+                }
+
+                chartStatusCodes.Series["Коды"].ChartType = SeriesChartType.Pie;
+                chartStatusCodes.Series["Коды"].IsValueShownAsLabel = true;         // показывать значения
+                chartStatusCodes.Series["Коды"].LabelFormat = "N0";                 // формат чисел
+                chartStatusCodes.Series["Коды"]["PieLabelStyle"] = "Outside";       // подписи снаружи
+                chartStatusCodes.Series["Коды"]["PieLineColor"] = "Black";          // линии к подписям
+                chartStatusCodes.Legends["Legend1"].Enabled = true;                 // легенда
+
+
+
 
                 // Сохраняем данные для поиска
                 _currentIPStats = _logController.IPStats;
@@ -200,7 +215,6 @@ namespace KR_Algorithms_LogResearcher
                 LoadErrorsData(_currentErrors);
 
                 lblStatus.Text = $"Готово! Обработано {_logController.TotalRequests:N0} записей";
-                btnExportTool.Enabled = true;
             }
             catch (Exception ex)
             {
@@ -224,7 +238,6 @@ namespace KR_Algorithms_LogResearcher
             {
                 var status = ip.IsSuspicious ? "🔴 Подозр." : "🟢 Норма";
 
-                // ✅ УБРАЛИ checkbox (false) — теперь 6 колонок без него
                 var row = dgvIPAddresses.Rows.Add(
                     ip.IP,                                    // IP адрес
                     ip.RequestCount.ToString("N0"),          // Запросов
@@ -234,17 +247,9 @@ namespace KR_Algorithms_LogResearcher
                     status                                    // Статус
                 );
 
-                // ✅ Убираем СИНИЙ цвет выделения — делаем серым
-                dgvIPAddresses.Rows[row].DefaultCellStyle.SelectionBackColor = Color.FromArgb(230, 230, 230);
-                dgvIPAddresses.Rows[row].DefaultCellStyle.SelectionForeColor = Color.Black;
-
                 if (ip.IsSuspicious)
                     dgvIPAddresses.Rows[row].DefaultCellStyle.BackColor = Color.FromArgb(255, 240, 240);
             }
-
-            // ✅ Для всей таблицы
-            dgvIPAddresses.DefaultCellStyle.SelectionBackColor = Color.FromArgb(230, 230, 230);
-            dgvIPAddresses.DefaultCellStyle.SelectionForeColor = Color.Black;
         }
 
         private void LoadPagesData(List<PageStatistics> stats)
@@ -254,7 +259,6 @@ namespace KR_Algorithms_LogResearcher
             {
                 var status = page.ErrorCount > 0 ? "⚠️ С ошибками" : "✅ OK";
 
-                // ✅ УБРАЛИ checkbox (false)
                 var row = dgvPages.Rows.Add(
                     page.Url.Length > 50 ? page.Url.Substring(0, 47) + "..." : page.Url,  // Страница
                     page.RequestCount.ToString("N0"),          // Запросов
@@ -264,17 +268,9 @@ namespace KR_Algorithms_LogResearcher
                     status                                     // Статус
                 );
 
-                // ✅ Убираем СИНИЙ цвет
-                dgvPages.Rows[row].DefaultCellStyle.SelectionBackColor = Color.FromArgb(230, 230, 230);
-                dgvPages.Rows[row].DefaultCellStyle.SelectionForeColor = Color.Black;
-
-                // ✅ ЖЁЛТЫЕ строки — это страницы с ошибками
                 if (page.ErrorCount > 0)
                     dgvPages.Rows[row].DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 220);
             }
-
-            dgvPages.DefaultCellStyle.SelectionBackColor = Color.FromArgb(230, 230, 230);
-            dgvPages.DefaultCellStyle.SelectionForeColor = Color.Black;
         }
 
         private void LoadErrorsData(List<LogEntry> errors)
@@ -282,19 +278,13 @@ namespace KR_Algorithms_LogResearcher
             dgvErrors.Rows.Clear();
             foreach (var error in errors.Take(500))
             {
-                // ✅ УБРАЛИ checkbox (false)
                 dgvErrors.Rows.Add(
                     error.Timestamp.ToString("HH:mm:ss"),     // Время
                     error.Url.Length > 40 ? error.Url.Substring(0, 37) + "..." : error.Url,  // Страница
                     error.StatusCode,                         // Код
-                    "-",                                      // Сообщение (если есть — добавить)
                     error.IP                                  // IP адрес
                 );
             }
-
-            // ✅ Убираем СИНИЙ цвет
-            dgvErrors.DefaultCellStyle.SelectionBackColor = Color.FromArgb(230, 230, 230);
-            dgvErrors.DefaultCellStyle.SelectionForeColor = Color.Black;
         }
 
         // === ПОИСК ===
@@ -314,26 +304,6 @@ namespace KR_Algorithms_LogResearcher
         {
             var filtered = _logController.SearchErrors(txtSearchError.Text);
             LoadErrorsData(filtered);
-        }
-
-        // === ЭКСПОРТ ===
-        private void btnExportTool_Click(object sender, EventArgs e)
-        {
-            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    _logController.ExportToCSV(saveFileDialog1.FileName, ExportType.IP);
-                    MessageBox.Show($"Отчет сохранен: {saveFileDialog1.FileName}", "Успех",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    lblStatus.Text = "Отчет экспортирован";
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка экспорта: {ex.Message}", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
         }
 
         private void BtnExportCSV_Click(object sender, EventArgs e)
