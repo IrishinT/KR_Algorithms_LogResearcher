@@ -736,6 +736,8 @@ namespace KR_Algorithms_LogResearcher
             dgvErrors.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvErrors.Size = new Size(1004, 318);
             dgvErrors.TabIndex = 1;
+            dgvErrors.DefaultCellStyle.SelectionBackColor = Color.FromArgb(220, 230, 245);
+            dgvErrors.DefaultCellStyle.SelectionForeColor = Color.Black;
             // 
             // colTime
             // 
