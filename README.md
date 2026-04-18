@@ -79,8 +79,4 @@ dotnet test
 ---
 
 ## 📁 Структура проекта
-
-* `KR_Algorithms_LogResearcher/` — Главный проект с графическим интерфейсом (WinForms).
-* `Controllers/` — Бизнес-логика проекта. Включает ядро приложения `LogController`, отвечающее за потоковое чтение, парсинг регулярными выражениями и агрегацию данных.
-* `Models/` — Структуры данных (`LogEntry`, `IPStatistics`, `PageStatistics`).
-* `KR_Algorithms_LogResearcher.Tests/` — Проект с xUnit тестами.
+![Структура проекта](img/structure.png)
