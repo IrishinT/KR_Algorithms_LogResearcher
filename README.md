@@ -32,6 +32,14 @@
 * Установленный [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 * C# 8+
 
+1. Склонируйте репозиторий на свой компьютер:
+   ```bash
+   git clone https://github.com/IrishinT/KR_Algorithms_LogResearcher.git
+   ```
+2. Перейдите в директорию проекта:
+   ```bash
+   cd KR_Algorithms_LogResearcher
+
 ### Вариант 1. Запуск через Visual Studio (Рекомендуется)
 1. Склонируйте репозиторий или распакуйте архив с проектом.
 2. Откройте файл решения `KR_Algorithms_LogResearcher.sln` в Visual Studio 2022.
