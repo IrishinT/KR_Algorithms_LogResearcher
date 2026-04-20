@@ -1,4 +1,5 @@
 ﻿// Controllers/LogController.cs
+using Controllers.Algorithms;
 using Models;
 using System.Text.RegularExpressions;
 
@@ -226,88 +227,178 @@ namespace Controllers
             return string.Empty; // Не нашли
         }
 
+        /// <summary>
+        /// Основной метод анализа логов. 
+        /// Группирует данные с помощью собственной хеш-таблицы и сортирует по частоте.
+        /// </summary>
         public void CalculateStatistics()
         {
             if (_entries.Count == 0) return;
 
-            // Статистика по IP
-            IPStats = _entries
-                .GroupBy(x => x.IP)
-                .Select(g => new IPStatistics
+            // хеш-таблицы для группировки
+            var ipHashTable = new CustomHashTable<string, List<LogEntry>>();
+            var pageHashTable = new CustomHashTable<string, List<LogEntry>>();
+
+            // Заполняем хеш-таблицы за один проход по логам
+            foreach (var entry in _entries)
+            {
+                // Группировка по IP
+                if (!ipHashTable.TryGetValue(entry.IP, out var ipLogList))
                 {
-                    IP = g.Key,
-                    RequestCount = g.Count(),
-                    FirstSeen = g.Min(x => x.Timestamp),
-                    LastSeen = g.Max(x => x.Timestamp),
-                    Percentage = (double)g.Count() / _entries.Count * 100,
+                    ipLogList = new List<LogEntry>();
+                    ipHashTable.AddOrUpdate(entry.IP, ipLogList);
+                }
+                ipLogList.Add(entry);
+
+                // Группировка по страницам
+                if (!pageHashTable.TryGetValue(entry.Url, out var pageLogList))
+                {
+                    pageLogList = new List<LogEntry>();
+                    pageHashTable.AddOrUpdate(entry.Url, pageLogList);
+                }
+                pageLogList.Add(entry);
+            }
+
+            // Формируем статистику по IP адресам
+            IPStats = new List<IPStatistics>();
+            foreach (var kvp in ipHashTable.GetAll())
+            {
+                var logs = kvp.Value;
+                DateTime first = logs[0].Timestamp;
+                DateTime last = logs[0].Timestamp;
+
+                // Ищем минимальное и максимальное время
+                foreach (var log in logs)
+                {
+                    if (log.Timestamp < first) first = log.Timestamp;
+                    if (log.Timestamp > last) last = log.Timestamp;
+                }
+
+                IPStats.Add(new IPStatistics
+                {
+                    IP = kvp.Key,
+                    RequestCount = logs.Count,
+                    FirstSeen = first,
+                    LastSeen = last,
+                    Percentage = (double)logs.Count / _entries.Count * 100,
                     SuspiciousThreshold = SuspiciousThreshold
-                })
-                .OrderByDescending(x => x.RequestCount)
-                .ToList();
+                });
+            }
+            // Вызываем собственную быструю сортировку по частоте (убыванию)
+            FrequencySorter.SortIPsByFrequencyDescending(IPStats);
 
-            // Статистика по страницам
-            PageStats = _entries
-                .GroupBy(x => x.Url)
-                .Select(g => new PageStatistics
+            // Формируем статистику по Страницам
+            PageStats = new List<PageStatistics>();
+            foreach (var kvp in pageHashTable.GetAll())
+            {
+                var logs = kvp.Value;
+                DateTime first = logs[0].Timestamp;
+                DateTime last = logs[0].Timestamp;
+                int errors = 0;
+
+                foreach (var log in logs)
                 {
-                    Url = g.Key,
-                    RequestCount = g.Count(),
-                    FirstSeen = g.Min(x => x.Timestamp),
-                    LastSeen = g.Max(x => x.Timestamp),
-                    ErrorCount = g.Count(x => x.StatusCode >= 400),
-                    Percentage = (double)g.Count() / _entries.Count * 100
-                })
-                .OrderByDescending(x => x.RequestCount)
-                .ToList();
+                    if (log.Timestamp < first) first = log.Timestamp;
+                    if (log.Timestamp > last) last = log.Timestamp;
+                    if (log.StatusCode >= 400) errors++;
+                }
 
-            // Ошибки
-            Errors = _entries
-                .Where(x => x.StatusCode >= 400)
-                .OrderByDescending(x => x.Timestamp)
-                .ToList();
+                PageStats.Add(new PageStatistics
+                {
+                    Url = kvp.Key,
+                    RequestCount = logs.Count,
+                    FirstSeen = first,
+                    LastSeen = last,
+                    ErrorCount = errors,
+                    Percentage = (double)logs.Count / _entries.Count * 100
+                });
+            }
+            // Сортировка страниц
+            FrequencySorter.SortPagesByFrequencyDescending(PageStats);
 
-            // ПОЧАСОВАЯ СТАТИСТИКА - ТОЛЬКО ВАЛИДНЫЕ ВРЕМЕНА!
-            HourlyTraffic = _entries
-                .Where(x => x.Timestamp != DateTime.MinValue)
-                .GroupBy(x => new DateTime(x.Timestamp.Year, x.Timestamp.Month, x.Timestamp.Day, x.Timestamp.Hour, 0, 0))
-                .OrderBy(g => g.Key)
-                .ToDictionary(g => g.Key, g => g.Count());  // ✅ Key = DateTime, не string!
+            // Ошибки (стандартный список)
+            Errors = new List<LogEntry>();
+            foreach (var entry in _entries)
+            {
+                if (entry.StatusCode >= 400)
+                    Errors.Add(entry);
+            }
 
-            // СТАТИСТИКА ПО КОДАМ - ВСЕ КОДЫ!
-            StatusCodeStats = _entries
-                .Where(x => x.StatusCode > 0)  // ✅ Только валидные статусы
-                .GroupBy(x => x.StatusCode)
-                .OrderBy(g => g.Key)
-                .ToDictionary(g => g.Key, g => g.Count());
+            // Статистика для графиков (заменяем встроенный Dictionary на стандартный только для UI графика, 
+            // так как график WinForms требует стандартный IDictionary/IEnumerable, но расчет делаем сами)
+            HourlyTraffic = new Dictionary<DateTime, int>();
+            StatusCodeStats = new Dictionary<int, int>();
+
+            foreach (var entry in _entries)
+            {
+                if (entry.Timestamp != DateTime.MinValue)
+                {
+                    DateTime hour = new DateTime(entry.Timestamp.Year, entry.Timestamp.Month, entry.Timestamp.Day, entry.Timestamp.Hour, 0, 0);
+                    if (HourlyTraffic.ContainsKey(hour))
+                        HourlyTraffic[hour]++;
+                    else
+                        HourlyTraffic[hour] = 1;
+                }
+
+                if (entry.StatusCode > 0)
+                {
+                    if (StatusCodeStats.ContainsKey(entry.StatusCode))
+                        StatusCodeStats[entry.StatusCode]++;
+                    else
+                        StatusCodeStats[entry.StatusCode] = 1;
+                }
+            }
         }
 
-        // Поиск
+        /// <summary>
+        /// Поиск среди IP-адресов с использованием собственного алгоритма КМП.
+        /// </summary>
         public List<IPStatistics> SearchIPs(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
                 return IPStats;
-            return IPStats
-                .Where(x => x.IP.Contains(query, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+
+            var result = new List<IPStatistics>();
+            foreach (var stat in IPStats)
+            {
+                if (KmpSearcher.Contains(stat.IP, query))
+                    result.Add(stat);
+            }
+            return result;
         }
 
+        /// <summary>
+        /// Поиск среди страниц с использованием алгоритма КМП.
+        /// </summary>
         public List<PageStatistics> SearchPages(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
                 return PageStats;
-            return PageStats
-                .Where(x => x.Url.Contains(query, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+
+            var result = new List<PageStatistics>();
+            foreach (var stat in PageStats)
+            {
+                if (KmpSearcher.Contains(stat.Url, query))
+                    result.Add(stat);
+            }
+            return result;
         }
 
+        /// <summary>
+        /// Поиск ошибок по URL или IP-адресу.
+        /// </summary>
         public List<LogEntry> SearchErrors(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
                 return Errors;
-            return Errors
-                .Where(x => x.Url.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                           x.IP.Contains(query, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+
+            var result = new List<LogEntry>();
+            foreach (var error in Errors)
+            {
+                if (KmpSearcher.Contains(error.Url, query) || KmpSearcher.Contains(error.IP, query))
+                    result.Add(error);
+            }
+            return result;
         }
 
         // Экспорт в CSV
