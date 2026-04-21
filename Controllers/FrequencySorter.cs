@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Models;
 
-namespace Controllers.Algorithms
+namespace Controllers
 {
     /// <summary>
     /// Класс, реализующий алгоритм Быстрой сортировки (QuickSort).

@@ -1,5 +1,4 @@
-﻿// Controllers/LogController.cs
-using Controllers.Algorithms;
+﻿using Controllers;
 using Models;
 using System.Text.RegularExpressions;
 
