@@ -12,9 +12,12 @@ namespace KR_Algorithms_LogResearcher
         private List<PageStatistics> _currentPageStats = new List<PageStatistics>();
         private List<LogEntry> _currentErrors = new List<LogEntry>();
 
+        private Label lblPerfHash, lblPerfSort, lblPerfKmp;
+
         public MainMenu()
         {
             InitializeComponent();
+            InitializePerformancePanel();
             InitializeStatCards();
 
             btnOpenTool.Click += BtnOpenTool_Click;
@@ -29,13 +32,46 @@ namespace KR_Algorithms_LogResearcher
             txtSearchPage.TextChanged += TxtSearchPage_TextChanged;
             txtSearchError.TextChanged += TxtSearchError_TextChanged;
 
-            // Экспорт в таблицах
-            btnExportCSV.Click += BtnExportCSV_Click;
-            btnExportPages.Click += BtnExportPages_Click;
-            btnExportErrors.Click += BtnExportErrors_Click;
-
             // Порог
             numThreshold.ValueChanged += NumThreshold_ValueChanged;
+        }
+
+        private void InitializePerformancePanel()
+        {
+            var perfPanel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 32,
+                BackColor = Color.FromArgb(242, 245, 249),
+                ColumnCount = 3,
+                RowCount = 1,
+                Padding = new Padding(10, 2, 10, 2)
+            };
+            perfPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
+            perfPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
+            perfPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.34F));
+            perfPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            var baseFont = new Font("Segoe UI", 8.5F, FontStyle.Regular);
+            var boldFont = new Font("Segoe UI", 8.5F, FontStyle.Bold);
+
+            lblPerfHash = new Label { Text = "Хеш-таблица: 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(0, 102, 204), AutoSize = true, Margin = new Padding(5, 0, 0, 0) };
+            lblPerfSort = new Label { Text = "Сортировка: 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(0, 153, 76), AutoSize = true, Margin = new Padding(5, 0, 0, 0) };
+            lblPerfKmp = new Label { Text = "Поиск (КМП): 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(255, 153, 0), AutoSize = true, Margin = new Padding(5, 0, 0, 0) };
+
+            perfPanel.Controls.Add(lblPerfHash, 0, 0);
+            perfPanel.Controls.Add(lblPerfSort, 1, 0);
+            perfPanel.Controls.Add(lblPerfKmp, 2, 0);
+
+            this.Controls.Add(perfPanel);
+        }
+
+        private void UpdatePerformanceLabels()
+        {
+            if (lblPerfHash == null) return;
+            lblPerfHash.Text = $"Хеш-таблица: {_logController.HashTableTime.TotalMilliseconds:F2} мс";
+            lblPerfSort.Text = $"Сортировка: {_logController.SortingIPTime.TotalMilliseconds:F2} мс";
+            lblPerfKmp.Text = $"Поиск (КМП): {_logController.KmpSearchTime.TotalMilliseconds:F2} мс";
         }
 
         private void InitializeStatCards()
@@ -99,7 +135,6 @@ namespace KR_Algorithms_LogResearcher
                     txtFilePath.Text = openFileDialog1.FileName;
                     txtFilePath.ForeColor = Color.Black;
                     btnAnalyzeTool.Enabled = true;
-                    lblStatus.Text = $"Файл: {Path.GetFileName(openFileDialog1.FileName)}";
                 }
             }
             catch (Exception ex)
@@ -159,9 +194,6 @@ namespace KR_Algorithms_LogResearcher
 
             try
             {
-                lblStatus.Text = "Анализ...";
-                progressBar.Visible = true;
-                progressBar.Value = 0;
                 btnAnalyzeTool.Enabled = false;
                 Application.DoEvents();
 
@@ -214,17 +246,15 @@ namespace KR_Algorithms_LogResearcher
                 LoadPagesData(_currentPageStats);
                 LoadErrorsData(_currentErrors);
 
-                lblStatus.Text = $"Готово! Обработано {_logController.TotalRequests:N0} записей";
+                UpdatePerformanceLabels();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
-                lblStatus.Text = "Ошибка анализа";
             }
             finally
             {
-                progressBar.Visible = false;
                 btnAnalyzeTool.Enabled = true;
             }
         }
@@ -292,57 +322,21 @@ namespace KR_Algorithms_LogResearcher
         {
             var filtered = _logController.SearchIPs(txtSearchIP.Text);
             LoadIPData(filtered);
+            UpdatePerformanceLabels();
         }
 
         private void TxtSearchPage_TextChanged(object sender, EventArgs e)
         {
             var filtered = _logController.SearchPages(txtSearchPage.Text);
             LoadPagesData(filtered);
+            UpdatePerformanceLabels();
         }
 
         private void TxtSearchError_TextChanged(object sender, EventArgs e)
         {
             var filtered = _logController.SearchErrors(txtSearchError.Text);
             LoadErrorsData(filtered);
-        }
-
-        private void BtnExportCSV_Click(object sender, EventArgs e)
-        {
-            ExportData(ExportType.IP, "IP_адреса.csv");
-        }
-
-        private void BtnExportPages_Click(object sender, EventArgs e)
-        {
-            ExportData(ExportType.Pages, "Страницы.csv");
-        }
-
-        private void BtnExportErrors_Click(object sender, EventArgs e)
-        {
-            ExportData(ExportType.Errors, "Ошибки.csv");
-        }
-
-        private void ExportData(ExportType type, string defaultName)
-        {
-            using var dialog = new SaveFileDialog
-            {
-                Filter = "CSV файлы|*.csv",
-                FileName = defaultName
-            };
-
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    _logController.ExportToCSV(dialog.FileName, type);
-                    MessageBox.Show("Экспорт выполнен успешно!", "Успех",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
+            UpdatePerformanceLabels();
         }
 
         private Panel CreateStatCard(string title, string value, Color color, string name)
