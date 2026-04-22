@@ -1,9 +1,15 @@
 ﻿using Controllers;
 using Models;
-using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace Controllers
 {
+
+    /// <summary>
+    /// Основной контроллер для обработки, анализа и экспорта данных журналов доступа веб-сервера.
+    /// Отвечает за потоковый парсинг строк, агрегацию метрик, выполнение строкового поиска 
+    /// и формирование отчетов для пользовательского интерфейса.
+    /// </summary>
     public class LogController
     {
         private List<LogEntry> _entries = new List<LogEntry>();
@@ -20,6 +26,11 @@ namespace Controllers
         public int Errors500 => _entries.Count(x => x.StatusCode >= 500);
         public int SuspiciousIPs => IPStats.Count(x => x.RequestCount > SuspiciousThreshold);
 
+        public TimeSpan HashTableTime { get; private set; }
+        public TimeSpan SortingPageTime { get; private set; }
+        public TimeSpan SortingIPTime { get; private set; }
+        public TimeSpan KmpSearchTime { get; private set; }
+
         // Данные для отображения
         public List<IPStatistics> IPStats { get; private set; } = new List<IPStatistics>();
         public List<PageStatistics> PageStats { get; private set; } = new List<PageStatistics>();
@@ -32,16 +43,20 @@ namespace Controllers
         // Событие для прогресс-бара
         public event Action<int, int> OnProgress;
 
+        /// <summary>
+        /// Выполняет потоковое чтение файла, определяет его формат и последовательно парсит каждую строку.
+        /// </summary>
+        /// <param name="filePath">Полный путь к файлу журнала.</param>
         public void ParseFile(string filePath)
         {
             _entries.Clear();
             _currentFormat = LogFormat.Unknown;
 
-            var lines = File.ReadLines(filePath); // Потоковое чтение для больших файлов
+            var lines = File.ReadLines(filePath);
             int totalLines = 0;
             int processedLines = 0;
 
-            // Сначала определяем формат
+            // Определяем формат по первым 100 строкам
             foreach (var line in lines.Take(100))
             {
                 var format = DetectFormat(line);
@@ -53,18 +68,16 @@ namespace Controllers
             }
 
             if (_currentFormat == LogFormat.Unknown)
-                _currentFormat = LogFormat.Apache; // По умолчанию
+                _currentFormat = LogFormat.Apache;
 
-            // Парсим весь файл
+            // Парсим весь файл потоково
             lines = File.ReadLines(filePath);
             foreach (var line in lines)
             {
                 totalLines++;
                 var entry = ParseLine(line);
-                if (entry != null)
-                    _entries.Add(entry);
+                if (entry != null) _entries.Add(entry);
 
-                // Обновляем прогресс каждые 1000 строк
                 if (totalLines % 1000 == 0)
                 {
                     processedLines += 1000;
@@ -76,80 +89,83 @@ namespace Controllers
             CalculateStatistics();
         }
 
-        private LogFormat DetectFormat(string line)
-        {
-            // Nginx: IP - - [date] "METHOD URL PROTO" status size "referer" "user-agent"
-            if (Regex.IsMatch(line, @""".*""\s+"".*""\s+"".*""$"))
-                return LogFormat.Nginx;
-
-            // Apache Combined: похож на Nginx
-            if (Regex.IsMatch(line, @""".*""\s+"".*""$"))
-                return LogFormat.ApacheCombined;
-
-            // Apache Common: IP - - [date] "METHOD URL PROTO" status size
-            if (Regex.IsMatch(line, @"^\d+\.\d+\.\d+\.\d+\s+-\s+-\s+\["))
-                return LogFormat.Apache;
-
-            return LogFormat.Unknown;
-        }
-
         private LogEntry ParseLine(string line)
         {
             try
             {
-                switch (_currentFormat)
-                {
-                    case LogFormat.Nginx:
-                    case LogFormat.ApacheCombined:
-                        return ParseCombinedLog(line);
-                    case LogFormat.Apache:
-                    default:
-                        return ParseCommonLog(line);
-                }
+               return ParseCommonLog(line);
             }
-            catch
-            {
-                return null;
-            }
+            catch { return null; }
         }
 
+        /// <summary>
+        /// Эвристическое определение формата по количеству кавычек и наличию маркера [date].
+        /// </summary>
+        private LogFormat DetectFormat(string line)
+        {
+            int quoteCount = CustomStringParser.CountChar(line, '"');
+            if (quoteCount >= 6) return LogFormat.Nginx;
+            if (quoteCount >= 4) return LogFormat.ApacheCombined;
+            if (quoteCount >= 2 && CustomStringParser.IndexOf(line, '[') >= 0) return LogFormat.Apache;
+            return LogFormat.Unknown;
+        }
+
+        /// <summary>
+        /// Извлекает поля из строки стандартного формата Apache: IP, время, метод, URL, код ответа, размер.
+        /// </summary>
         private LogEntry ParseCommonLog(string line)
         {
-            // === ВРЕМЯ — универсально ===
-            var timeStr = ExtractTimestamp(line);
-            var timestamp = string.IsNullOrEmpty(timeStr)
-                ? DateTime.MinValue
-                : ParseTimestamp(timeStr);
+            // 1. ВРЕМЯ: извлечение содержимого квадратных скобок
+            int timeEnd = -1;
+            string timeStr = CustomStringParser.ExtractBetween(line, '[', ']', out timeEnd);
+            var timestamp = string.IsNullOrEmpty(timeStr) ? DateTime.MinValue : ParseTimestamp(timeStr);
 
-            // === Остальное — как было, но с защитой ===
-            var ipMatch = Regex.Match(line, @"^(\d{1,3}(?:\.\d{1,3}){3})");
-            if (!ipMatch.Success) return null;
-            var ip = ipMatch.Groups[1].Value;
+            // 2. IP: поиск до первого пробела + валидация
+            int ipEnd = CustomStringParser.IndexOf(line, ' ');
+            if (ipEnd <= 0 || !CustomStringParser.IsValidIPv4(line.Substring(0, ipEnd))) return null;
+            string ip = line.Substring(0, ipEnd);
 
-            var requestMatch = Regex.Match(line, @"""(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)\s+([^\s""]+)");
-            var method = requestMatch.Success ? requestMatch.Groups[1].Value : "-";
-            var url = requestMatch.Success ? requestMatch.Groups[2].Value : "-";
+            // 3. REQUEST: поиск между первыми кавычками после IP
+            int reqEnd = -1;
+            string request = CustomStringParser.ExtractQuoted(line, out reqEnd, ipEnd);
+            string method = "-", url = "-";
 
-            var statusMatch = Regex.Match(line, @"""\s+(\d{3})\s+(\d+|-)");
-            var statusCode = statusMatch.Success ? int.Parse(statusMatch.Groups[1].Value) : 0;
-            var size = statusMatch.Success && statusMatch.Groups[2].Value != "-"
-                ? int.Parse(statusMatch.Groups[2].Value) : 0;
+            if (!string.IsNullOrEmpty(request))
+            {
+                int spaceInReq = CustomStringParser.IndexOf(request, ' ');
+                if (spaceInReq > 0)
+                {
+                    method = request.Substring(0, spaceInReq).ToUpper();
+                    int urlEnd = CustomStringParser.IndexOf(request, ' ', spaceInReq + 1);
+                    url = urlEnd > 0 ? request.Substring(spaceInReq + 1, urlEnd - spaceInReq - 1) : request.Substring(spaceInReq + 1);
+                }
+            }
+
+            // 4. STATUS & SIZE: парсинг целых чисел сразу после закрывающей кавычки
+            int statusStart = reqEnd + 1;
+            while (statusStart < line.Length && char.IsWhiteSpace(line[statusStart])) statusStart++;
+
+            int statusEnd = statusStart;
+            while (statusEnd < line.Length && char.IsDigit(line[statusEnd])) statusEnd++;
+            int statusCode = 0;
+            if (statusEnd > statusStart) int.TryParse(line.Substring(statusStart, statusEnd - statusStart), out statusCode);
+
+            int sizeStart = statusEnd;
+            while (sizeStart < line.Length && char.IsWhiteSpace(line[sizeStart])) sizeStart++;
+            int sizeEnd = sizeStart;
+            while (sizeEnd < line.Length && (char.IsDigit(line[sizeEnd]) || line[sizeEnd] == '-')) sizeEnd++;
+            int size = 0;
+            if (sizeEnd > sizeStart && line[sizeStart] != '-') int.TryParse(line.Substring(sizeStart, sizeEnd - sizeStart), out size);
 
             return new LogEntry
             {
                 IP = ip,
-                Timestamp = timestamp,  // Теперь правильно
+                Timestamp = timestamp,
                 Method = method,
                 Url = url,
                 StatusCode = statusCode,
                 Size = size
             };
-        }
-
-        private LogEntry ParseCombinedLog(string line)
-        {
-            // Просто делегируем в Common — там теперь универсальный парсинг
-            return ParseCommonLog(line);
         }
 
         private DateTime ParseTimestamp(string timestamp)
@@ -192,40 +208,6 @@ namespace Controllers
             return DateTime.MinValue; // Сигнал, что время не распарсилось
         }
 
-        private string ExtractTimestamp(string line)
-        {
-            // 1. Пробуем найти в квадратных скобках [17/May/2015:10:05:47 +0000]
-            var bracketMatch = Regex.Match(line, @"\[([^\]]+)\]");
-            if (bracketMatch.Success)
-                return bracketMatch.Groups[1].Value;
-
-            // 2. ISO-формат: 2023-10-15T14:30:00Z или 2023-10-15 14:30:00
-            var isoMatch = Regex.Match(line,
-                @"(\d{4}[-/]\d{2}[-/]\d{2}[T\s]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)");
-            if (isoMatch.Success)
-                return isoMatch.Groups[1].Value;
-
-            // 3. Формат: 15/Oct/2023:14:30:00 (без скобок)
-            var apacheMatch = Regex.Match(line,
-                @"(\d{2}/[A-Za-z]{3}/\d{4}:\d{2}:\d{2}:\d{2}(?:\s*[+-]\d{4})?)");
-            if (apacheMatch.Success)
-                return apacheMatch.Groups[1].Value;
-
-            // 4. Простой формат: 2023-10-15 14:30:00
-            var simpleMatch = Regex.Match(line,
-                @"(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})");
-            if (simpleMatch.Success)
-                return simpleMatch.Groups[1].Value;
-
-            // 5. European: 15.10.2023 14:30:00
-            var euroMatch = Regex.Match(line,
-                @"(\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}:\d{2})");
-            if (euroMatch.Success)
-                return euroMatch.Groups[1].Value;
-
-            return string.Empty; // Не нашли
-        }
-
         /// <summary>
         /// Основной метод анализа логов. 
         /// Группирует данные с помощью собственной хеш-таблицы и сортирует по частоте.
@@ -237,6 +219,8 @@ namespace Controllers
             // хеш-таблицы для группировки
             var ipHashTable = new CustomHashTable<string, List<LogEntry>>();
             var pageHashTable = new CustomHashTable<string, List<LogEntry>>();
+
+            var swHash = Stopwatch.StartNew();
 
             // Заполняем хеш-таблицы за один проход по логам
             foreach (var entry in _entries)
@@ -257,6 +241,9 @@ namespace Controllers
                 }
                 pageLogList.Add(entry);
             }
+
+            swHash.Stop();
+            HashTableTime = swHash.Elapsed;
 
             // Формируем статистику по IP адресам
             IPStats = new List<IPStatistics>();
@@ -283,8 +270,12 @@ namespace Controllers
                     SuspiciousThreshold = SuspiciousThreshold
                 });
             }
+
+            var swIPSort = Stopwatch.StartNew();
             // Вызываем собственную быструю сортировку по частоте (убыванию)
             FrequencySorter.SortIPsByFrequencyDescending(IPStats);
+            swIPSort.Stop();
+            SortingIPTime = swIPSort.Elapsed;
 
             // Формируем статистику по Страницам
             PageStats = new List<PageStatistics>();
@@ -313,7 +304,10 @@ namespace Controllers
                 });
             }
             // Сортировка страниц
+            var swPageSort = Stopwatch.StartNew();
             FrequencySorter.SortPagesByFrequencyDescending(PageStats);
+            swPageSort.Stop();
+            SortingPageTime = swPageSort.Elapsed;
 
             // Ошибки (стандартный список)
             Errors = new List<LogEntry>();
@@ -358,11 +352,16 @@ namespace Controllers
                 return IPStats;
 
             var result = new List<IPStatistics>();
+
+            var sw = new Stopwatch();
             foreach (var stat in IPStats)
             {
                 if (KmpSearcher.Contains(stat.IP, query))
                     result.Add(stat);
             }
+            sw.Stop();
+            KmpSearchTime = sw.Elapsed;
+
             return result;
         }
 
@@ -375,11 +374,16 @@ namespace Controllers
                 return PageStats;
 
             var result = new List<PageStatistics>();
+            var sw = new Stopwatch();
+            sw.Start();
             foreach (var stat in PageStats)
             {
                 if (KmpSearcher.Contains(stat.Url, query))
                     result.Add(stat);
             }
+            sw.Stop();
+            KmpSearchTime = sw.Elapsed;
+
             return result;
         }
 
@@ -392,55 +396,20 @@ namespace Controllers
                 return Errors;
 
             var result = new List<LogEntry>();
+
+            var sw = new Stopwatch();
+            sw.Start();
             foreach (var error in Errors)
             {
                 if (KmpSearcher.Contains(error.Url, query) || KmpSearcher.Contains(error.IP, query))
                     result.Add(error);
             }
+            sw.Stop();
+            KmpSearchTime = sw.Elapsed;
+
             return result;
         }
 
-        // Экспорт в CSV
-        public void ExportToCSV(string filePath, ExportType type)
-        {
-            using var writer = new StreamWriter(filePath);
-
-            var culture = System.Globalization.CultureInfo.InvariantCulture;
-
-            switch (type)
-            {
-                case ExportType.IP:
-                    writer.WriteLine("IP,Запросов,Процент,Первый,Последний,Статус");
-                    foreach (var ip in IPStats)
-                    {
-                        var percent = ip.Percentage.ToString("F2", culture); // "33.33" вместо "33,33"
-                        var status = ip.IsSuspicious ? "Подозр." : "Норма";
-                        writer.WriteLine($"{ip.IP},{ip.RequestCount},{percent},{ip.FirstSeen:yyyy-MM-dd HH:mm:ss},{ip.LastSeen:yyyy-MM-dd HH:mm:ss},{status}");
-                    }
-                    break;
-
-                case ExportType.Pages:
-                    writer.WriteLine("URL,Запросов,Процент,Ошибок,Статус");
-                    foreach (var page in PageStats)
-                    {
-                        var percent = page.Percentage.ToString("F2", culture);
-                        var status = page.ErrorCount > 0 ? "С ошибками" : "OK";
-                        // Экранируем URL если там есть запятые
-                        var url = page.Url.Contains(",") ? $"\"{page.Url}\"" : page.Url;
-                        writer.WriteLine($"{url},{page.RequestCount},{percent},{page.ErrorCount},{status}");
-                    }
-                    break;
-
-                case ExportType.Errors:
-                    writer.WriteLine("Время,URL,Код,IP");
-                    foreach (var error in Errors)
-                    {
-                        var url = error.Url.Contains(",") ? $"\"{error.Url}\"" : error.Url;
-                        writer.WriteLine($"{error.Timestamp:yyyy-MM-dd HH:mm:ss},{url},{error.StatusCode},{error.IP}");
-                    }
-                    break;
-            }
-        }
     }
 
     public enum LogFormat { Unknown, Apache, ApacheCombined, Nginx }
