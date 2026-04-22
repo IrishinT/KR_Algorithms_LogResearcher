@@ -30,6 +30,7 @@ namespace Controllers
         public TimeSpan SortingPageTime { get; private set; }
         public TimeSpan SortingIPTime { get; private set; }
         public TimeSpan KmpSearchTime { get; private set; }
+        public TimeSpan StringParserTime { get; private set; }
 
         // Данные для отображения
         public List<IPStatistics> IPStats { get; private set; } = new List<IPStatistics>();
@@ -56,10 +57,15 @@ namespace Controllers
             int totalLines = 0;
             int processedLines = 0;
 
+            var parserSw = new Stopwatch();
+
             // Определяем формат по первым 100 строкам
             foreach (var line in lines.Take(100))
             {
+                parserSw.Start();
                 var format = DetectFormat(line);
+                parserSw.Stop();
+
                 if (format != LogFormat.Unknown)
                 {
                     _currentFormat = format;
@@ -75,7 +81,11 @@ namespace Controllers
             foreach (var line in lines)
             {
                 totalLines++;
+
+                parserSw.Start();
                 var entry = ParseLine(line);
+                parserSw.Stop();
+
                 if (entry != null) _entries.Add(entry);
 
                 if (totalLines % 1000 == 0)
@@ -84,6 +94,8 @@ namespace Controllers
                     OnProgress?.Invoke(processedLines, totalLines);
                 }
             }
+
+            StringParserTime = parserSw.Elapsed;
 
             OnProgress?.Invoke(totalLines, totalLines);
             CalculateStatistics();
@@ -354,6 +366,7 @@ namespace Controllers
             var result = new List<IPStatistics>();
 
             var sw = new Stopwatch();
+            sw.Start();
             foreach (var stat in IPStats)
             {
                 if (KmpSearcher.Contains(stat.IP, query))

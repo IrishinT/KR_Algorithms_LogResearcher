@@ -12,7 +12,7 @@ namespace KR_Algorithms_LogResearcher
         private List<PageStatistics> _currentPageStats = new List<PageStatistics>();
         private List<LogEntry> _currentErrors = new List<LogEntry>();
 
-        private Label lblPerfHash, lblPerfSort, lblPerfKmp;
+        private Label lblPerfParser, lblPerfHash, lblPerfSortIP, lblPerfSortPage, lblPerfKmp;
 
         public MainMenu()
         {
@@ -38,30 +38,29 @@ namespace KR_Algorithms_LogResearcher
 
         private void InitializePerformancePanel()
         {
-            var perfPanel = new TableLayoutPanel
+            var perfPanel = new FlowLayoutPanel
             {
                 Dock = DockStyle.Bottom,
                 Height = 32,
                 BackColor = Color.FromArgb(242, 245, 249),
-                ColumnCount = 3,
-                RowCount = 1,
-                Padding = new Padding(10, 2, 10, 2)
+                Padding = new Padding(10, 6, 10, 0),
+                WrapContents = false
             };
-            perfPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
-            perfPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
-            perfPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.34F));
-            perfPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
             var baseFont = new Font("Segoe UI", 8.5F, FontStyle.Regular);
             var boldFont = new Font("Segoe UI", 8.5F, FontStyle.Bold);
 
-            lblPerfHash = new Label { Text = "Хеш-таблица: 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(0, 102, 204), AutoSize = true, Margin = new Padding(5, 0, 0, 0) };
-            lblPerfSort = new Label { Text = "Сортировка: 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(0, 153, 76), AutoSize = true, Margin = new Padding(5, 0, 0, 0) };
-            lblPerfKmp = new Label { Text = "Поиск (КМП): 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(255, 153, 0), AutoSize = true, Margin = new Padding(5, 0, 0, 0) };
+            lblPerfParser = new Label { Text = "Парсинг строк: 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(153, 0, 153), AutoSize = true, Margin = new Padding(0, 0, 20, 0) };
+            lblPerfHash = new Label { Text = "Хеш-таблица: 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(0, 102, 204), AutoSize = true, Margin = new Padding(0, 0, 20, 0) };
+            lblPerfSortIP = new Label { Text = "Сортировка IP: 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(0, 153, 76), AutoSize = true, Margin = new Padding(0, 0, 20, 0) };
+            lblPerfSortPage = new Label { Text = "Сортировка Страниц: 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(0, 120, 50), AutoSize = true, Margin = new Padding(0, 0, 20, 0) };
+            lblPerfKmp = new Label { Text = "КМП: 0.00 мс", Font = boldFont, ForeColor = Color.FromArgb(255, 102, 0), AutoSize = true, Margin = new Padding(0, 0, 0, 0) };
 
-            perfPanel.Controls.Add(lblPerfHash, 0, 0);
-            perfPanel.Controls.Add(lblPerfSort, 1, 0);
-            perfPanel.Controls.Add(lblPerfKmp, 2, 0);
+            perfPanel.Controls.Add(lblPerfParser);
+            perfPanel.Controls.Add(lblPerfHash);
+            perfPanel.Controls.Add(lblPerfSortIP);
+            perfPanel.Controls.Add(lblPerfSortPage);
+            perfPanel.Controls.Add(lblPerfKmp);
 
             this.Controls.Add(perfPanel);
         }
@@ -69,9 +68,11 @@ namespace KR_Algorithms_LogResearcher
         private void UpdatePerformanceLabels()
         {
             if (lblPerfHash == null) return;
-            lblPerfHash.Text = $"Хеш-таблица: {_logController.HashTableTime.TotalMilliseconds:F2} мс";
-            lblPerfSort.Text = $"Сортировка: {_logController.SortingIPTime.TotalMilliseconds:F2} мс";
-            lblPerfKmp.Text = $"Поиск (КМП): {_logController.KmpSearchTime.TotalMilliseconds:F2} мс";
+            lblPerfParser.Text = $"Парсинг строк: {_logController.StringParserTime.TotalMilliseconds:F2} мс";
+            lblPerfHash.Text = $"Хеш-Таблица: {_logController.HashTableTime.TotalMilliseconds:F2} мс";
+            lblPerfSortIP.Text = $"Сортировка IP: {_logController.SortingIPTime.TotalMilliseconds:F2} мс";
+            lblPerfSortPage.Text = $"Сортировка Страниц: {_logController.SortingPageTime.TotalMilliseconds:F2} мс";
+            lblPerfKmp.Text = $"КМП: {_logController.KmpSearchTime.TotalMilliseconds:F2} мс";
         }
 
         private void InitializeStatCards()
