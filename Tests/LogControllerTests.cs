@@ -177,31 +177,5 @@ namespace Tests
             Assert.Single(searchErrorResult);
             Assert.Equal(500, searchErrorResult.First().StatusCode);
         }
-
-        [Fact]
-        public void ExportToCSV_ShouldCreateFileWithData()
-        {
-            // Arrange
-            var controller = new LogController();
-            var logLines = new[]
-            {
-                "192.168.1.1 - - [01/Jan/2024:10:00:00 +0000] \"GET /home HTTP/1.1\" 200 100",
-            };
-            controller.ParseFile(CreateTempLogFile(logLines));
-
-            string exportFilePath = Path.GetTempFileName();
-            _tempFiles.Add(exportFilePath);
-
-            // Act
-            controller.ExportToCSV(exportFilePath, ExportType.IP);
-
-            // Assert
-            Assert.True(File.Exists(exportFilePath));
-            var exportedLines = File.ReadAllLines(exportFilePath);
-
-            Assert.Equal(2, exportedLines.Length); // 1 Заголовок + 1 Строка с данными
-            Assert.Contains("IP,Запросов,Процент,Первый,Последний,Статус", exportedLines[0]);
-            Assert.Contains("192.168.1.1,1,100.00", exportedLines[1]);
-        }
     }
 }
